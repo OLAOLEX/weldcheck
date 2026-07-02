@@ -92,12 +92,42 @@
   }
 
   /* Header nav active state + footer year, run on every page. */
+  /* Light/dark toggle. Default follows the OS; the header button forces a choice by adding
+     theme-dark / theme-light to <body>, remembered per device. */
+  function isDark() {
+    var b = document.body;
+    if (b.classList.contains("theme-dark")) return true;
+    if (b.classList.contains("theme-light")) return false;
+    return !!(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  }
+  function setThemeIcon(btn) {
+    var use = btn.querySelector("use");
+    if (use) use.setAttribute("href", isDark() ? "#i-sun" : "#i-moon");
+    btn.setAttribute("aria-label", isDark() ? "Switch to light mode" : "Switch to dark mode");
+  }
+  function initTheme() {
+    var saved = "";
+    try { saved = localStorage.getItem("wcTheme") || ""; } catch (e) {}
+    if (saved === "dark" || saved === "light") document.body.classList.add("theme-" + saved);
+    var btn = document.getElementById("themeBtn");
+    if (!btn) return;
+    setThemeIcon(btn);
+    btn.addEventListener("click", function () {
+      var next = isDark() ? "light" : "dark";
+      document.body.classList.remove("theme-dark", "theme-light");
+      document.body.classList.add("theme-" + next);
+      try { localStorage.setItem("wcTheme", next); } catch (e) {}
+      setThemeIcon(btn);
+    });
+  }
+
   function chrome() {
     var page = document.body.getAttribute("data-page");
     document.querySelectorAll(".wc-topnav a[data-nav]").forEach(function (a) {
       if (a.getAttribute("data-nav") === page) a.classList.add("is-active");
     });
     document.querySelectorAll("[data-year]").forEach(function (el) { el.textContent = new Date().getFullYear(); });
+    initTheme();
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", chrome);
   else chrome();
