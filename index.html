@@ -184,7 +184,7 @@
     WcFx.reveal(document.body, { selector: ".sel-stat, .sel-card", step: 60 });
   });
 
-  /* Welcome popup: shows on the first visit (and any time via the About link or #about). */
+  /* Welcome popup: shows on every load of the home page (and via the About link). */
   var modal = Wc.$("welcomeModal");
   function openModal() {
     modal.hidden = false;
@@ -193,14 +193,11 @@
   function closeModal() {
     modal.classList.remove("is-in");
     setTimeout(function () { modal.hidden = true; }, 240);
-    try { localStorage.setItem("wcWelcomed", "1"); } catch (e) {}
   }
   Wc.$("welcomeBtn").addEventListener("click", closeModal);
   modal.addEventListener("click", function (e) { if (e.target === modal) closeModal(); });
   Wc.$("aboutLink").addEventListener("click", function (e) { e.preventDefault(); openModal(); });
-  var welcomed = false;
-  try { welcomed = !!localStorage.getItem("wcWelcomed"); } catch (e) {}
-  if (!welcomed || location.hash === "#about") openModal();
+  openModal();
 })();
 </script>
 </body>
