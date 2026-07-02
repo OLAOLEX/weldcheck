@@ -67,14 +67,13 @@ artwork of the same names; nothing else needs to change. A prompt that matches t
 
 ## Run locally
 
-Any static file server works, for example:
-
 ```
-python -m http.server 4173
+python dev-server.py
 ```
 
-Then open http://localhost:4173. Locally the AI endpoint is not running, so checks use the
-built-in basic analyzer. To test the AI path locally, use `vercel dev` with the env var set.
+Then open http://localhost:4173. The small dev server mirrors the deployed clean URLs
+(/new-job, /history). Locally the AI endpoint is not running, so checks use the built-in
+basic analyzer. To test the AI path locally, use `vercel dev` with the env var set.
 
 ## Deploy to Vercel
 

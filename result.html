@@ -14,13 +14,13 @@
 
 <header class="sel-header">
   <div class="sel-wrap sel-header__bar">
-    <a class="sel-logo" href="index.html" aria-label="WeldCheck home">
+    <a class="sel-logo" href="/" aria-label="WeldCheck home">
       <span class="sel-logo__mark"><img src="assets/logo.svg" alt="" width="36" height="36"/></span>
       <span class="sel-logo__text"><span class="sel-logo__brand">WeldCheck</span><span class="sel-logo__sub">Pre-weld checklist</span></span>
     </a>
     <nav class="wc-topnav" aria-label="Main">
-      <a href="new-job.html" data-nav="new"><svg class="ic" aria-hidden="true"><use href="#i-plus"></use></svg><span class="wc-navlabel">New job</span></a>
-      <a href="history.html" data-nav="history"><svg class="ic" aria-hidden="true"><use href="#i-history"></use></svg><span class="wc-navlabel">History</span></a>
+      <a href="/new-job" data-nav="new"><svg class="ic" aria-hidden="true"><use href="#i-plus"></use></svg><span class="wc-navlabel">New job</span></a>
+      <a href="/history" data-nav="history"><svg class="ic" aria-hidden="true"><use href="#i-history"></use></svg><span class="wc-navlabel">History</span></a>
     </nav>
   </div>
 </header>
@@ -48,7 +48,7 @@
       <div class="wc-metrics" id="metrics"></div>
       <div class="sel-note sel-note--info" style="margin-top:14px">
         <svg class="ic" aria-hidden="true"><use href="#i-info"></use></svg>
-        <span id="engineNote">This result is indicative only. It supports learning and record keeping, and does not replace inspection by an experienced welder.</span>
+        <span id="engineNote">Use the result as a simple guide.</span>
       </div>
     </div>
 
@@ -59,8 +59,8 @@
 
     <div class="sel-hero__cta" style="margin-top:20px">
       <a class="sel-btn sel-btn--ghost" id="recheckLink" href="#"><svg class="ic" aria-hidden="true"><use href="#i-camera"></use></svg> Check another photo</a>
-      <a class="sel-btn sel-btn--primary" href="new-job.html"><svg class="ic" aria-hidden="true"><use href="#i-plus"></use></svg> Start a new job</a>
-      <a class="sel-btn sel-btn--ghost" href="history.html"><svg class="ic" aria-hidden="true"><use href="#i-history"></use></svg> Job history</a>
+      <a class="sel-btn sel-btn--primary" href="/new-job"><svg class="ic" aria-hidden="true"><use href="#i-plus"></use></svg> Start a new job</a>
+      <a class="sel-btn sel-btn--ghost" href="/history"><svg class="ic" aria-hidden="true"><use href="#i-history"></use></svg> Job history</a>
     </div>
 
     <div style="margin-top:26px;text-align:center">
@@ -72,7 +72,7 @@
     <div class="sel-empty">
       <h2>No result here yet</h2>
       <p>This job has no appearance result, or the job was not found.</p>
-      <a class="sel-btn sel-btn--primary" href="history.html">Open job history</a>
+      <a class="sel-btn sel-btn--primary" href="/history">Open job history</a>
     </div>
   </div>
 </main>
@@ -137,10 +137,10 @@
       row("i-calendar", "Job date: " + Wc.esc(Wc.fmtDate(job.date || job.createdAt)), "Checked " + Wc.esc(Wc.fmtDate(res.checkedAt))) +
       (job.note ? row("i-info", "Note", Wc.esc(job.note)) : "");
 
-    Wc.$("recheckLink").href = "upload.html?job=" + job.id;
+    Wc.$("recheckLink").href = "/upload?job=" + job.id;
     Wc.$("deleteBtn").addEventListener("click", function () {
       if (!confirm("Delete this job and its photo from this device? This cannot be undone.")) return;
-      WcDb.remove(job.id).then(function () { location.href = "history.html"; });
+      WcDb.remove(job.id).then(function () { location.href = "/history"; });
     });
 
     Wc.$("page").hidden = false;

@@ -78,9 +78,9 @@
     return n;
   }
   function nextPage(job) {
-    if (job.result) return "result.html?job=" + job.id;
-    if (preDone(job) >= CHECKLIST.length) return "upload.html?job=" + job.id;
-    return "checklist.html?job=" + job.id;
+    if (job.result) return "/result?job=" + job.id;
+    if (preDone(job) >= CHECKLIST.length) return "/upload?job=" + job.id;
+    return "/checklist?job=" + job.id;
   }
   function statusPill(job) {
     if (job.result) {

@@ -15,13 +15,13 @@
 
 <header class="sel-header">
   <div class="sel-wrap sel-header__bar">
-    <a class="sel-logo" href="index.html" aria-label="WeldCheck home">
+    <a class="sel-logo" href="/" aria-label="WeldCheck home">
       <span class="sel-logo__mark"><img src="assets/logo.svg" alt="" width="36" height="36"/></span>
       <span class="sel-logo__text"><span class="sel-logo__brand">WeldCheck</span><span class="sel-logo__sub">Pre-weld checklist</span></span>
     </a>
     <nav class="wc-topnav" aria-label="Main">
-      <a href="new-job.html" data-nav="new"><svg class="ic" aria-hidden="true"><use href="#i-plus"></use></svg><span class="wc-navlabel">New job</span></a>
-      <a href="history.html" data-nav="history"><svg class="ic" aria-hidden="true"><use href="#i-history"></use></svg><span class="wc-navlabel">History</span></a>
+      <a href="/new-job" data-nav="new"><svg class="ic" aria-hidden="true"><use href="#i-plus"></use></svg><span class="wc-navlabel">New job</span></a>
+      <a href="/history" data-nav="history"><svg class="ic" aria-hidden="true"><use href="#i-history"></use></svg><span class="wc-navlabel">History</span></a>
     </nav>
   </div>
 </header>
@@ -33,8 +33,8 @@
       <h1>Prepare well. Weld once. Keep the record.</h1>
       <p class="lead">WeldCheck guides you through basic preparation checks before welding, stores each job record, and gives a simple appearance result from a smartphone photo of the finished weld.</p>
       <div class="sel-hero__cta">
-        <a class="sel-btn sel-btn--primary sel-btn--lg" href="new-job.html"><svg class="ic" aria-hidden="true"><use href="#i-plus"></use></svg> Start a new job</a>
-        <a class="sel-btn sel-btn--ghost sel-btn--lg" href="history.html"><svg class="ic" aria-hidden="true"><use href="#i-history"></use></svg> View job history</a>
+        <a class="sel-btn sel-btn--primary sel-btn--lg" href="/new-job"><svg class="ic" aria-hidden="true"><use href="#i-plus"></use></svg> Start a new job</a>
+        <a class="sel-btn sel-btn--ghost sel-btn--lg" href="/history"><svg class="ic" aria-hidden="true"><use href="#i-history"></use></svg> View job history</a>
       </div>
     </div>
   </section>
@@ -179,7 +179,7 @@
           Wc.statusPill(j) +
           '<svg class="ic sel-row__chev" aria-hidden="true"><use href="#i-chevron-right"></use></svg></a>';
       }).join("") + "</div>" +
-      (jobs.length > 3 ? '<div style="margin-top:14px;text-align:center"><a class="sel-btn sel-btn--ghost sel-btn--sm" href="history.html">See all ' + jobs.length + " jobs</a></div>" : "");
+      (jobs.length > 3 ? '<div style="margin-top:14px;text-align:center"><a class="sel-btn sel-btn--ghost sel-btn--sm" href="/history">See all ' + jobs.length + " jobs</a></div>" : "");
     }
     WcFx.reveal(document.body, { selector: ".sel-stat, .sel-card", step: 60 });
   });

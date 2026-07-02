@@ -14,13 +14,13 @@
 
 <header class="sel-header">
   <div class="sel-wrap sel-header__bar">
-    <a class="sel-logo" href="index.html" aria-label="WeldCheck home">
+    <a class="sel-logo" href="/" aria-label="WeldCheck home">
       <span class="sel-logo__mark"><img src="assets/logo.svg" alt="" width="36" height="36"/></span>
       <span class="sel-logo__text"><span class="sel-logo__brand">WeldCheck</span><span class="sel-logo__sub">Pre-weld checklist</span></span>
     </a>
     <nav class="wc-topnav" aria-label="Main">
-      <a href="new-job.html" data-nav="new"><svg class="ic" aria-hidden="true"><use href="#i-plus"></use></svg><span class="wc-navlabel">New job</span></a>
-      <a href="history.html" data-nav="history"><svg class="ic" aria-hidden="true"><use href="#i-history"></use></svg><span class="wc-navlabel">History</span></a>
+      <a href="/new-job" data-nav="new"><svg class="ic" aria-hidden="true"><use href="#i-plus"></use></svg><span class="wc-navlabel">New job</span></a>
+      <a href="/history" data-nav="history"><svg class="ic" aria-hidden="true"><use href="#i-history"></use></svg><span class="wc-navlabel">History</span></a>
     </nav>
   </div>
 </header>
@@ -68,7 +68,7 @@
     <div class="sel-empty">
       <h2>Job not found</h2>
       <p>This job may have been deleted, or the link is incomplete.</p>
-      <a class="sel-btn sel-btn--primary" href="new-job.html">Start a new job</a>
+      <a class="sel-btn sel-btn--primary" href="/new-job">Start a new job</a>
     </div>
   </div>
 </main>
@@ -156,7 +156,7 @@
         };
         return WcDb.put(job);
       }).then(function () {
-        location.href = "result.html?job=" + job.id;
+        location.href = "/result?job=" + job.id;
       }).catch(function () {
         btn.classList.remove("is-loading");
         Wc.toast("The check failed. Try a different photo.");
@@ -211,7 +211,7 @@
       '<div class="wc-jobstrip__ic"><svg class="ic" aria-hidden="true"><use href="#i-file-text"></use></svg></div>' +
       '<div class="wc-jobstrip__t"><div class="wc-jobstrip__name">Sample ' + Wc.esc(job.sampleNo) + (job.jobName ? " · " + Wc.esc(job.jobName) : "") + "</div>" +
       '<div class="wc-jobstrip__meta">Checklist ' + Wc.preDone(job) + "/" + Wc.CHECKLIST.length + " done · " + Wc.esc(job.electrode) + "</div></div>" +
-      '<a class="sel-btn sel-btn--ghost sel-btn--sm" href="checklist.html?job=' + job.id + '">Back</a>';
+      '<a class="sel-btn sel-btn--ghost sel-btn--sm" href="/checklist?job=' + job.id + '">Back</a>';
     buildSamples();
     Wc.$("page").hidden = false;
     WcFx.reveal(Wc.$("page"), { selector: ".sel-card, .wc-jobstrip, .sel-note", step: 60 });
