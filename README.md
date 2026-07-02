@@ -81,4 +81,8 @@ basic analyzer. To test the AI path locally, use `vercel dev` with the env var s
    no build command, output directory left as the repository root.
 2. In Vercel, Settings > Environment Variables, add `OPENAI_API_KEY` with your OpenAI key.
    Optional: `OPENAI_MODEL` to pick a different model (default `gpt-4o-mini`).
-3. Redeploy. The AI check is live; without the key the app still works on the basic analyzer.
+3. Recommended: add `AI_CHECK_PIN` (for example a 6 digit code). Every AI check then needs
+   this PIN; the app asks the user once and remembers it on their device. This stops strangers
+   from spending your OpenAI credit. Change or remove it any time in the env settings (a
+   changed PIN takes effect on the next deploy; users are simply asked again).
+4. Redeploy. The AI check is live; without the key the app still works on the basic analyzer.

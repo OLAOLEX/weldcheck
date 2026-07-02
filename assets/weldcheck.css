@@ -274,6 +274,7 @@ a.sel-row:hover { background: var(--sp-surface-2); }
 .sel-modal__foot { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; flex-wrap: wrap; }
 .sel-modal__card--celebrate { text-align: center; }
 .sel-modal__card--celebrate .sel-modal__foot { justify-content: center; }
+.wc-pin { text-align: center; font-size: 24px; font-weight: 800; letter-spacing: .5em; text-indent: .5em; font-variant-numeric: tabular-nums; margin-top: 6px; }
 .wc-cred { display: flex; flex-direction: column; gap: 2px; margin-top: 14px; padding: 14px 16px; background: var(--sp-surface-2); border-radius: 14px; text-align: left; }
 .wc-cred b { font-size: 14.5px; }
 .wc-cred span { font-size: 13px; color: var(--sp-ink-2); }

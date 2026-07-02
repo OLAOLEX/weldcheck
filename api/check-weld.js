@@ -5,7 +5,11 @@
  *
  * Setup on Vercel: add the OPENAI_API_KEY environment variable (Settings > Environment
  * Variables). Optional: OPENAI_MODEL to override the default model. Without a key the
- * endpoint answers 503 and the front end falls back to the built-in basic analyzer. */
+ * endpoint answers 503 and the front end falls back to the built-in basic analyzer.
+ *
+ * Spend protection: set AI_CHECK_PIN (for example a 6 digit code) and every AI check must
+ * include that PIN. The app asks the user once and remembers it on their device. Change or
+ * remove the PIN any time in Vercel env settings; without the variable no PIN is asked. */
 
 var ALLOWED = { good: 1, holes: 1, spatter: 1, unclear: 1 };
 
@@ -30,6 +34,21 @@ module.exports = async function handler(req, res) {
   if (!key) {
     res.status(503).json({ error: "AI check is not configured on this deployment." });
     return;
+  }
+
+  /* PIN gate: when AI_CHECK_PIN is set, only requests carrying the right PIN reach the AI. */
+  var requiredPin = process.env.AI_CHECK_PIN;
+  if (requiredPin) {
+    var pin = String((req.body && req.body.pin) || "");
+    if (pin !== String(requiredPin)) {
+      /* Small delay so guessing PINs is slow. */
+      await new Promise(function (r) { setTimeout(r, 800); });
+      res.status(401).json({
+        error: pin ? "That PIN is not correct." : "A PIN is needed for the AI check.",
+        code: pin ? "pin_wrong" : "pin_required"
+      });
+      return;
+    }
   }
 
   var image = req.body && req.body.image;

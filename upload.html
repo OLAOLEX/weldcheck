@@ -73,6 +73,20 @@
   </div>
 </main>
 
+<div class="sel-modal" id="pinModal" hidden role="dialog" aria-modal="true" aria-labelledby="pinTitle">
+  <div class="sel-modal__card sel-modal__card--celebrate">
+    <div class="sel-modal__ic" style="margin:0 auto 14px"><svg class="ic" aria-hidden="true"><use href="#i-lock"></use></svg></div>
+    <h2 id="pinTitle">Enter the AI check PIN</h2>
+    <p>The AI check is protected with a PIN. Enter it once and this device remembers it.</p>
+    <input class="sel-input wc-pin" id="pinInput" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" aria-label="AI check PIN"/>
+    <p class="sel-err" id="pinErr" style="margin:10px 0 0" hidden></p>
+    <div class="sel-modal__foot" style="flex-direction:column">
+      <button class="sel-btn sel-btn--primary sel-btn--block" id="pinOk" type="button">Unlock the AI check</button>
+      <button class="sel-btn sel-btn--ghost sel-btn--block" id="pinSkip" type="button">Skip and use the basic check</button>
+    </div>
+  </div>
+</div>
+
 <footer class="sel-footer"><div class="sel-wrap"><span>WeldCheck · weldcheck.cc · Final year project, Department of Mechanical Engineering, Federal University of Technology, Minna · &copy; <span data-year>2026</span></span></div></footer>
 
 <script src="assets/sprite.js"></script>
@@ -115,6 +129,64 @@
     return c.toDataURL("image/jpeg", 0.85);
   }
 
+  /* PIN prompt for the protected AI check. Resolves with the entered PIN, or null on skip. */
+  function askPin(message) {
+    var modal = Wc.$("pinModal");
+    return new Promise(function (resolve) {
+      var inp = Wc.$("pinInput"), err = Wc.$("pinErr");
+      inp.value = "";
+      err.hidden = !message;
+      err.textContent = message || "";
+      modal.hidden = false;
+      requestAnimationFrame(function () { modal.classList.add("is-in"); inp.focus(); });
+      function close(val) {
+        modal.classList.remove("is-in");
+        /* Only hide if a follow-up prompt has not reopened the modal in the meantime. */
+        setTimeout(function () { if (!modal.classList.contains("is-in")) modal.hidden = true; }, 220);
+        Wc.$("pinOk").onclick = Wc.$("pinSkip").onclick = inp.onkeydown = null;
+        resolve(val);
+      }
+      Wc.$("pinOk").onclick = function () {
+        var v = inp.value.trim();
+        if (!v) { err.hidden = false; err.textContent = "Enter the PIN, or skip to use the basic check."; return; }
+        close(v);
+      };
+      Wc.$("pinSkip").onclick = function () { close(null); };
+      inp.onkeydown = function (e) { if (e.key === "Enter") Wc.$("pinOk").onclick(); };
+    });
+  }
+
+  /* Call the AI endpoint; if it asks for a PIN, prompt (remembered per device) and retry.
+     Throws when the AI path is unavailable or skipped, so the caller falls back. */
+  function aiCheck(payload) {
+    function attempt(pin, promptsLeft) {
+      var body = { image: payload };
+      if (pin) body.pin = pin;
+      return fetch("/api/check-weld", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      }).then(function (r) {
+        return r.json().then(function (j) { return { ok: r.ok, status: r.status, j: j }; }, function () { return { ok: r.ok, status: r.status, j: null }; });
+      }).then(function (out) {
+        if (out.ok && out.j && out.j.key) return out.j;
+        if (out.status === 401 && out.j && (out.j.code === "pin_required" || out.j.code === "pin_wrong")) {
+          if (out.j.code === "pin_wrong") { try { localStorage.removeItem("wcPin"); } catch (e) {} }
+          if (promptsLeft <= 0) throw new Error("pin failed");
+          return askPin(out.j.code === "pin_wrong" ? "That PIN is not correct. Try again." : null).then(function (newPin) {
+            if (!newPin) throw new Error("pin skipped");
+            try { localStorage.setItem("wcPin", newPin); } catch (e) {}
+            return attempt(newPin, promptsLeft - 1);
+          });
+        }
+        throw new Error("ai unavailable");
+      });
+    }
+    var saved = "";
+    try { saved = localStorage.getItem("wcPin") || ""; } catch (e) {}
+    return attempt(saved, 3);
+  }
+
   /* AI check first (deployed with an API key); built-in basic analyzer as the fallback so the
      app still works offline and on local preview. Local measurements are computed either way
      so the result page can always show them. */
@@ -126,15 +198,7 @@
     var run = function () {
       var t0 = performance.now();
       WcClassify.classify(img).then(function (local) {
-        return fetch("/api/check-weld", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ image: toSendable(img) })
-        }).then(function (r) {
-          if (!r.ok) throw new Error("ai unavailable");
-          return r.json();
-        }).then(function (ai) {
-          if (!ai || !ai.key) throw new Error("bad ai reply");
+        return aiCheck(toSendable(img)).then(function (ai) {
           return { key: ai.key, confidence: ai.confidence, reason: ai.reason, source: "ai", metrics: local.metrics, ms: Math.round(performance.now() - t0) };
         }).catch(function () {
           local.source = "local";
