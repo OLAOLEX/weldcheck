@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>New job · WeldCheck</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="assets/weldcheck.css"/>
+</head>
+<body class="sel-body" data-page="new">
+
+<header class="sel-header">
+  <div class="sel-wrap sel-header__bar">
+    <a class="sel-logo" href="index.html" aria-label="WeldCheck home">
+      <span class="sel-logo__mark"><svg class="ic" aria-hidden="true"><use href="#i-zap"></use></svg></span>
+      <span class="sel-logo__text"><span class="sel-logo__brand">WeldCheck</span><span class="sel-logo__sub">Pre-weld checklist</span></span>
+    </a>
+    <nav class="wc-topnav" aria-label="Main">
+      <a href="new-job.html" data-nav="new"><svg class="ic" aria-hidden="true"><use href="#i-plus"></use></svg><span class="wc-navlabel">New job</span></a>
+      <a href="history.html" data-nav="history"><svg class="ic" aria-hidden="true"><use href="#i-history"></use></svg><span class="wc-navlabel">History</span></a>
+    </nav>
+  </div>
+</header>
+
+<main class="sel-main sel-section">
+  <div class="sel-narrow">
+    <span class="sel-steps"><svg class="ic" aria-hidden="true" style="width:14px;height:14px"><use href="#i-file-text"></use></svg> Step 1 of 3 · Job details</span>
+    <h1>Create a new welding job</h1>
+    <p>Record the basic details of this mild steel sample. The details are saved with the checklist result and the weld photo.</p>
+
+    <form class="sel-card" id="jobForm" novalidate>
+      <div class="sel-field">
+        <label for="sampleNo">Sample number</label>
+        <input class="sel-input" id="sampleNo" type="text" placeholder="e.g. MS-01" required autocomplete="off"/>
+        <span class="sel-err" id="errSample" hidden>Enter the sample number so the weld can be identified later.</span>
+      </div>
+      <div class="sel-field">
+        <label for="jobName">Job name <span class="wc-optional">(optional)</span></label>
+        <input class="sel-input" id="jobName" type="text" placeholder="e.g. Butt joint practice piece" autocomplete="off"/>
+      </div>
+      <div class="sel-field">
+        <label for="material">Material</label>
+        <select class="sel-select" id="material">
+          <option>Mild steel plate</option>
+          <option>Mild steel sheet</option>
+          <option>Mild steel pipe</option>
+          <option>Other mild steel section</option>
+        </select>
+      </div>
+      <div class="sel-field">
+        <label for="electrode">Electrode and size</label>
+        <input class="sel-input" id="electrode" type="text" placeholder="e.g. E6013, 3.2 mm" required autocomplete="off"/>
+        <span class="sel-err" id="errElectrode" hidden>Record the electrode so the preparation step can be confirmed.</span>
+      </div>
+      <div class="sel-field">
+        <label for="operator">Welder or student name <span class="wc-optional">(optional)</span></label>
+        <input class="sel-input" id="operator" type="text" placeholder="Who is welding this sample?" autocomplete="off"/>
+      </div>
+      <div class="sel-field">
+        <label for="jobDate">Date</label>
+        <input class="sel-input" id="jobDate" type="date"/>
+      </div>
+      <div class="sel-field" style="margin-bottom:8px">
+        <label for="note">Short note <span class="wc-optional">(optional)</span></label>
+        <textarea class="sel-textarea" id="note" placeholder="Anything worth remembering about this job."></textarea>
+      </div>
+      <button class="sel-btn sel-btn--primary sel-btn--lg sel-btn--block" id="saveBtn" type="submit">Save job and open the checklist <svg class="ic" aria-hidden="true"><use href="#i-arrow-right"></use></svg></button>
+    </form>
+  </div>
+</main>
+
+<footer class="sel-footer"><div class="sel-wrap"><span>WeldCheck · Final year project, Department of Mechanical Engineering, Federal University of Technology, Minna · &copy; <span data-year>2026</span></span></div></footer>
+
+<script src="assets/sprite.js"></script>
+<script src="assets/db.js"></script>
+<script src="assets/app.js"></script>
+<script src="assets/fx.js"></script>
+<script>
+(function () {
+  var d = new Date();
+  Wc.$("jobDate").value = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+
+  Wc.$("jobForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var sampleNo = Wc.$("sampleNo").value.trim();
+    var electrode = Wc.$("electrode").value.trim();
+    Wc.$("errSample").hidden = !!sampleNo;
+    Wc.$("errElectrode").hidden = !!electrode;
+    if (!sampleNo || !electrode) return;
+
+    var btn = Wc.$("saveBtn");
+    btn.classList.add("is-loading");
+    var job = {
+      id: Wc.uid(),
+      createdAt: Date.now(),
+      sampleNo: sampleNo,
+      jobName: Wc.$("jobName").value.trim(),
+      material: Wc.$("material").value,
+      electrode: electrode,
+      operator: Wc.$("operator").value.trim(),
+      date: Wc.$("jobDate").value,
+      note: Wc.$("note").value.trim(),
+      checks: {},
+      result: null,
+      image: null,
+      imageType: ""
+    };
+    WcDb.put(job).then(function () {
+      location.href = "checklist.html?job=" + job.id;
+    }, function () {
+      btn.classList.remove("is-loading");
+      Wc.toast("Could not save the job. Please try again.");
+    });
+  });
+
+  WcFx.reveal(document.body, { selector: ".sel-card", step: 60 });
+})();
+</script>
+</body>
+</html>

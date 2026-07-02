@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Appearance result · WeldCheck</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="assets/weldcheck.css"/>
+</head>
+<body class="sel-body" data-page="history">
+
+<header class="sel-header">
+  <div class="sel-wrap sel-header__bar">
+    <a class="sel-logo" href="index.html" aria-label="WeldCheck home">
+      <span class="sel-logo__mark"><svg class="ic" aria-hidden="true"><use href="#i-zap"></use></svg></span>
+      <span class="sel-logo__text"><span class="sel-logo__brand">WeldCheck</span><span class="sel-logo__sub">Pre-weld checklist</span></span>
+    </a>
+    <nav class="wc-topnav" aria-label="Main">
+      <a href="new-job.html" data-nav="new"><svg class="ic" aria-hidden="true"><use href="#i-plus"></use></svg><span class="wc-navlabel">New job</span></a>
+      <a href="history.html" data-nav="history"><svg class="ic" aria-hidden="true"><use href="#i-history"></use></svg><span class="wc-navlabel">History</span></a>
+    </nav>
+  </div>
+</header>
+
+<main class="sel-main sel-section">
+  <div class="sel-narrow" id="page" hidden>
+
+    <div class="sel-card wc-result-hero">
+      <div class="wc-result-hero__ic" id="heroIc"><svg class="ic" aria-hidden="true"><use id="heroUse" href="#i-check-circle"></use></svg></div>
+      <span class="sel-state-pill" id="catPill"></span>
+      <h2 id="catLabel" style="margin-top:14px"></h2>
+      <p id="catMeaning" style="margin-bottom:6px"></p>
+      <p id="catReason" style="font-size:14px;color:var(--sp-ink-3)"></p>
+    </div>
+
+    <div class="sel-card" style="margin-top:18px">
+      <h3>Checked photo</h3>
+      <div class="wc-preview" style="margin-top:10px"><img id="weldImg" alt="Checked weld sample photo"/></div>
+    </div>
+
+    <div class="sel-card" style="margin-top:18px">
+      <h3>Image measurements</h3>
+      <p style="font-size:13.5px">Simple measures computed from the photo, with the time the check took.</p>
+      <div class="wc-metrics" id="metrics"></div>
+      <div class="sel-note sel-note--info" style="margin-top:14px">
+        <svg class="ic" aria-hidden="true"><use href="#i-info"></use></svg>
+        <span>Prototype analyzer: this result comes from simple image measurements and is indicative only. It supports learning and record keeping, and does not replace inspection by an experienced welder.</span>
+      </div>
+    </div>
+
+    <div class="sel-card" style="margin-top:18px">
+      <h3>Job record</h3>
+      <div class="sel-rows" id="jobRows"></div>
+    </div>
+
+    <div class="sel-hero__cta" style="margin-top:20px">
+      <a class="sel-btn sel-btn--ghost" id="recheckLink" href="#"><svg class="ic" aria-hidden="true"><use href="#i-camera"></use></svg> Check another photo</a>
+      <a class="sel-btn sel-btn--primary" href="new-job.html"><svg class="ic" aria-hidden="true"><use href="#i-plus"></use></svg> Start a new job</a>
+      <a class="sel-btn sel-btn--ghost" href="history.html"><svg class="ic" aria-hidden="true"><use href="#i-history"></use></svg> Job history</a>
+    </div>
+
+    <div style="margin-top:26px;text-align:center">
+      <button class="sel-btn sel-btn--ghost sel-btn--sm" id="deleteBtn" style="color:var(--sp-danger)"><svg class="ic" aria-hidden="true" style="width:15px;height:15px"><use href="#i-trash"></use></svg> Delete this job</button>
+    </div>
+  </div>
+
+  <div class="sel-narrow" id="missing" hidden>
+    <div class="sel-empty">
+      <h2>No result here yet</h2>
+      <p>This job has no appearance result, or the job was not found.</p>
+      <a class="sel-btn sel-btn--primary" href="history.html">Open job history</a>
+    </div>
+  </div>
+</main>
+
+<footer class="sel-footer"><div class="sel-wrap"><span>WeldCheck · Final year project, Department of Mechanical Engineering, Federal University of Technology, Minna · &copy; <span data-year>2026</span></span></div></footer>
+
+<script src="assets/sprite.js"></script>
+<script src="assets/db.js"></script>
+<script src="assets/app.js"></script>
+<script src="assets/fx.js"></script>
+<script>
+(function () {
+  var jobId = Wc.param("job");
+
+  function metricCell(k, v, s) {
+    return '<div class="wc-metric"><div class="wc-metric__k">' + k + '</div><div class="wc-metric__v">' + v + '</div><div class="wc-metric__s">' + s + "</div></div>";
+  }
+  function row(icon, title, sub) {
+    return '<div class="sel-row"><div class="sel-row__icon"><svg class="ic" aria-hidden="true"><use href="#' + icon + '"></use></svg></div>' +
+      '<div class="sel-row__body"><div class="sel-row__title">' + title + "</div>" + (sub ? '<div class="sel-row__sub">' + sub + "</div>" : "") + "</div></div>";
+  }
+
+  if (!jobId) { Wc.$("missing").hidden = false; return; }
+  WcDb.get(jobId).then(function (job) {
+    if (!job || !job.result) { Wc.$("missing").hidden = false; return; }
+    var res = job.result;
+    var cat = Wc.CATEGORIES[res.key] || Wc.CATEGORIES.unclear;
+
+    Wc.$("heroIc").classList.add(cat.hero);
+    Wc.$("heroUse").setAttribute("href", "#" + cat.icon);
+    var pill = Wc.$("catPill");
+    pill.classList.add(cat.pill.replace("sel-state-pill--", "sel-state-pill--"));
+    pill.className = "sel-state-pill " + cat.pill;
+    pill.textContent = "Confidence " + res.confidence + "% (indicative)";
+    Wc.$("catLabel").textContent = cat.label;
+    Wc.$("catMeaning").textContent = cat.meaning;
+    Wc.$("catReason").textContent = res.reason || "";
+
+    if (job.image) {
+      Wc.$("weldImg").src = URL.createObjectURL(job.image);
+    }
+
+    var m = res.metrics || {};
+    Wc.$("metrics").innerHTML =
+      metricCell("Brightness", m.brightness != null ? m.brightness : "?", "mean level, 0 to 255") +
+      metricCell("Contrast", m.contrast != null ? m.contrast : "?", "spread of tones") +
+      metricCell("Sharpness", m.sharpness != null ? m.sharpness : "?", "higher is crisper") +
+      metricCell("Edge activity", m.edgeActivity != null ? m.edgeActivity + "%" : "?", "busy surface texture") +
+      metricCell("Dark spots", m.darkSpots != null ? m.darkSpots + "%" : "?", "pit-like regions") +
+      metricCell("Response time", (res.ms != null ? res.ms : "?") + " ms", "on this device");
+
+    var checksDone = Wc.preDone(job);
+    Wc.$("jobRows").innerHTML =
+      row("i-file-text", "Sample " + Wc.esc(job.sampleNo) + (job.jobName ? " · " + Wc.esc(job.jobName) : ""), Wc.esc(job.material)) +
+      row("i-wrench", "Electrode: " + Wc.esc(job.electrode), job.operator ? "Welder: " + Wc.esc(job.operator) : "") +
+      row("i-clipboard", "Pre-weld checklist: " + checksDone + " of " + Wc.CHECKLIST.length + " done", checksDone >= Wc.CHECKLIST.length ? "All preparation checks confirmed" : "Some checks were still pending") +
+      row("i-calendar", "Job date: " + Wc.esc(Wc.fmtDate(job.date || job.createdAt)), "Checked " + Wc.esc(Wc.fmtDate(res.checkedAt))) +
+      (job.note ? row("i-info", "Note", Wc.esc(job.note)) : "");
+
+    Wc.$("recheckLink").href = "upload.html?job=" + job.id;
+    Wc.$("deleteBtn").addEventListener("click", function () {
+      if (!confirm("Delete this job and its photo from this device? This cannot be undone.")) return;
+      WcDb.remove(job.id).then(function () { location.href = "history.html"; });
+    });
+
+    Wc.$("page").hidden = false;
+    WcFx.reveal(Wc.$("page"), { selector: ".sel-card", step: 70 });
+  }, function () { Wc.$("missing").hidden = false; });
+})();
+</script>
+</body>
+</html>

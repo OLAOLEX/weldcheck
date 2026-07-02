@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>WeldCheck · Pre-Welding Checklist and Weld Appearance Checking</title>
+<meta name="description" content="Web-based pre-welding checklist and weld appearance checking system for mild steel samples."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="assets/weldcheck.css"/>
+</head>
+<body class="sel-body" data-page="home">
+
+<header class="sel-header">
+  <div class="sel-wrap sel-header__bar">
+    <a class="sel-logo" href="index.html" aria-label="WeldCheck home">
+      <span class="sel-logo__mark"><svg class="ic" aria-hidden="true"><use href="#i-zap"></use></svg></span>
+      <span class="sel-logo__text"><span class="sel-logo__brand">WeldCheck</span><span class="sel-logo__sub">Pre-weld checklist</span></span>
+    </a>
+    <nav class="wc-topnav" aria-label="Main">
+      <a href="new-job.html" data-nav="new"><svg class="ic" aria-hidden="true"><use href="#i-plus"></use></svg><span class="wc-navlabel">New job</span></a>
+      <a href="history.html" data-nav="history"><svg class="ic" aria-hidden="true"><use href="#i-history"></use></svg><span class="wc-navlabel">History</span></a>
+    </nav>
+  </div>
+</header>
+
+<main class="sel-main">
+  <section class="sel-hero">
+    <div class="sel-wrap">
+      <span class="sel-hero__eyebrow"><svg class="ic" aria-hidden="true"><use href="#i-flame"></use></svg> Mild steel weld samples</span>
+      <h1>Prepare well. Weld once. Keep the record.</h1>
+      <p class="lead">WeldCheck guides you through basic preparation checks before welding, stores each job record, and gives a simple appearance result from a smartphone photo of the finished weld.</p>
+      <div class="sel-hero__cta">
+        <a class="sel-btn sel-btn--primary sel-btn--lg" href="new-job.html"><svg class="ic" aria-hidden="true"><use href="#i-plus"></use></svg> Start a new job</a>
+        <a class="sel-btn sel-btn--ghost sel-btn--lg" href="history.html"><svg class="ic" aria-hidden="true"><use href="#i-history"></use></svg> View job history</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="sel-section" style="padding-top:0" id="statsWrap">
+    <div class="sel-wrap">
+      <div class="sel-grid sel-grid--3">
+        <div class="sel-stat"><div class="sel-stat__value" id="statJobs">0</div><div class="sel-stat__label">Jobs recorded</div></div>
+        <div class="sel-stat"><div class="sel-stat__value" id="statChecks">0</div><div class="sel-stat__label">Checklists completed</div></div>
+        <div class="sel-stat"><div class="sel-stat__value" id="statImages">0</div><div class="sel-stat__label">Weld images checked</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sel-section" style="padding-top:0" id="bodyWrap">
+    <div class="sel-wrap sel-grid sel-grid--2" style="align-items:start">
+
+      <div class="sel-card">
+        <h3>How it works</h3>
+        <div class="sel-rows" style="margin-top:6px">
+          <div class="sel-row"><div class="sel-row__icon">1</div><div class="sel-row__body"><div class="sel-row__title">Create a job</div><div class="sel-row__sub">Record the sample number, material, electrode size, and a short note.</div></div></div>
+          <div class="sel-row"><div class="sel-row__icon">2</div><div class="sel-row__body"><div class="sel-row__title">Complete the pre-weld checklist</div><div class="sel-row__sub">Confirm each preparation step before the arc is started.</div></div></div>
+          <div class="sel-row"><div class="sel-row__icon">3</div><div class="sel-row__body"><div class="sel-row__title">Upload a clear weld photo</div><div class="sel-row__sub">Capture the finished bead with your phone camera after welding.</div></div></div>
+          <div class="sel-row"><div class="sel-row__icon">4</div><div class="sel-row__body"><div class="sel-row__title">Get the appearance result</div><div class="sel-row__sub">The system groups the image into one visual category and saves the record.</div></div></div>
+        </div>
+      </div>
+
+      <div class="sel-card sel-card--feature">
+        <h3>Weld appearance categories</h3>
+        <p style="font-size:14px">Every checked image is grouped into one of four simple categories.</p>
+        <div class="wc-cat"><span class="wc-cat__dot" style="background:var(--sp-success)"></span><div><div class="wc-cat__name">Good weld appearance</div><div class="wc-cat__sub">The bead looks regular and clean.</div></div></div>
+        <div class="wc-cat"><span class="wc-cat__dot" style="background:var(--sp-danger)"></span><div><div class="wc-cat__name">Visible holes and rough bead</div><div class="wc-cat__sub">Holes, rough surface, and irregular finishing.</div></div></div>
+        <div class="wc-cat"><span class="wc-cat__dot" style="background:var(--sp-warn)"></span><div><div class="wc-cat__name">Excessive spatter and uneven bead</div><div class="wc-cat__sub">Heavy spatter, uneven width, and rough surface.</div></div></div>
+        <div class="wc-cat"><span class="wc-cat__dot" style="background:var(--sp-ink-3)"></span><div><div class="wc-cat__name">Unclear image</div><div class="wc-cat__sub">Blurred, too dark, too bright, or poorly framed.</div></div></div>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="sel-section" style="padding-top:0">
+    <div class="sel-wrap">
+      <div class="sel-card" id="recentCard">
+        <h3>Recent jobs</h3>
+        <div id="recentList"><p class="sel-empty" style="padding:24px 8px">No jobs yet. Start your first job to begin the record.</p></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="sel-footer"><div class="sel-wrap"><span>WeldCheck · Final year project, Department of Mechanical Engineering, Federal University of Technology, Minna · &copy; <span data-year>2026</span></span></div></footer>
+
+<script src="assets/sprite.js"></script>
+<script src="assets/db.js"></script>
+<script src="assets/app.js"></script>
+<script src="assets/fx.js"></script>
+<script>
+(function () {
+  WcDb.all().then(function (jobs) {
+    var checks = 0, images = 0;
+    jobs.forEach(function (j) {
+      if (Wc.preDone(j) >= Wc.CHECKLIST.length) checks++;
+      if (j.result) images++;
+    });
+    WcFx.countUp(Wc.$("statJobs"), jobs.length);
+    WcFx.countUp(Wc.$("statChecks"), checks);
+    WcFx.countUp(Wc.$("statImages"), images);
+
+    var recent = jobs.slice(0, 3);
+    if (recent.length) {
+      Wc.$("recentList").innerHTML = '<div class="sel-rows">' + recent.map(function (j) {
+        return '<a class="sel-row" href="' + Wc.nextPage(j) + '">' +
+          '<div class="sel-row__icon"><svg class="ic" aria-hidden="true"><use href="#i-file-text"></use></svg></div>' +
+          '<div class="sel-row__body"><div class="sel-row__title">Sample ' + Wc.esc(j.sampleNo) + (j.jobName ? " · " + Wc.esc(j.jobName) : "") + "</div>" +
+          '<div class="sel-row__sub">' + Wc.esc(Wc.fmtDate(j.date || j.createdAt)) + (j.electrode ? " · " + Wc.esc(j.electrode) : "") + "</div></div>" +
+          Wc.statusPill(j) +
+          '<svg class="ic sel-row__chev" aria-hidden="true"><use href="#i-chevron-right"></use></svg></a>';
+      }).join("") + "</div>" +
+      (jobs.length > 3 ? '<div style="margin-top:14px;text-align:center"><a class="sel-btn sel-btn--ghost sel-btn--sm" href="history.html">See all ' + jobs.length + " jobs</a></div>" : "");
+    }
+    WcFx.reveal(document.body, { selector: ".sel-stat, .sel-card", step: 60 });
+  });
+})();
+</script>
+</body>
+</html>
