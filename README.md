@@ -53,6 +53,18 @@ assets/
   fx.js           Entrance and progress motion helpers
 ```
 
+## Logo
+
+The mark lives at `assets/logo.svg` (used in the header and welcome popup) with a copy at
+`favicon.svg` (browser tab icon). To swap in a generated logo, replace both files with square
+artwork of the same names; nothing else needs to change. A prompt that matches the app style:
+
+> Minimal flat vector app icon for "WeldCheck", a welding checklist web app. A dark navy
+> (#16233A) rounded square tile. Inside: a stylised weld bead of overlapping light cream
+> ripples along the bottom, a welding electrode entering from the top right, and a bright
+> orange (#EA580C) four-point spark where they meet. Clean geometric shapes, no text, no
+> gradients, no shadows, crisp edges, centred composition, plenty of padding.
+
 ## Run locally
 
 Any static file server works, for example:

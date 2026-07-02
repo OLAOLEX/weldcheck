@@ -75,8 +75,8 @@ body.sel-body {
 .sel-header { position: sticky; top: 0; z-index: 30; background: var(--sp-header); backdrop-filter: saturate(140%) blur(14px); -webkit-backdrop-filter: saturate(140%) blur(14px); border-bottom: 1px solid var(--sp-line); }
 .sel-header__bar { display: flex; align-items: center; gap: 12px; height: 68px; }
 .sel-logo { display: inline-flex; align-items: center; gap: 11px; text-decoration: none; color: var(--sp-ink); }
-.sel-logo__mark { width: 36px; height: 36px; border-radius: 11px; background: var(--sp-feature); color: #fff; display: grid; place-items: center; flex: none; }
-.sel-logo__mark .ic { width: 20px; height: 20px; color: var(--sp-accent); }
+.sel-logo__mark { width: 36px; height: 36px; border-radius: 11px; overflow: hidden; display: grid; place-items: center; flex: none; box-shadow: var(--sp-sh-1); }
+.sel-logo__mark img { width: 36px; height: 36px; display: block; }
 .sel-logo__text { display: flex; flex-direction: column; line-height: 1.05; }
 .sel-logo__brand { font-weight: 800; font-size: 16.5px; letter-spacing: -0.02em; }
 .sel-logo__sub { font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--sp-accent-ink); }
@@ -193,6 +193,12 @@ a.sel-row:hover { background: var(--sp-surface-2); }
 .sel-search { display: flex; align-items: center; gap: 8px; background: var(--sp-surface-2); border: 1px solid var(--sp-line); border-radius: 12px; padding: 8px 12px; }
 .sel-search .ic { width: 16px; height: 16px; color: var(--sp-ink-3); flex: none; }
 .sel-search input { flex: 1; min-width: 0; border: 0; background: transparent; font: inherit; font-size: 14px; color: var(--sp-ink); outline: none; }
+
+/* FAQ */
+.sel-faq details { border: 1px solid var(--sp-line); border-radius: 14px; padding: 18px 20px; margin-bottom: 12px; background: var(--sp-surface); }
+.sel-faq summary { font-weight: 700; cursor: pointer; list-style: none; font-size: 16px; }
+.sel-faq summary::-webkit-details-marker { display: none; }
+.sel-faq p { margin: 12px 0 0; }
 
 /* Footer */
 .sel-footer { border-top: 1px solid var(--sp-line); padding: 34px 0; color: var(--sp-ink-3); font-size: 13.5px; }

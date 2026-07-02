@@ -4,6 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>WeldCheck · Pre-Welding Checklist and Weld Appearance Checking</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml"/>
 <meta name="description" content="Web-based pre-welding checklist and weld appearance checking system for mild steel samples."/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -15,7 +16,7 @@
 <header class="sel-header">
   <div class="sel-wrap sel-header__bar">
     <a class="sel-logo" href="index.html" aria-label="WeldCheck home">
-      <span class="sel-logo__mark"><svg class="ic" aria-hidden="true"><use href="#i-zap"></use></svg></span>
+      <span class="sel-logo__mark"><img src="assets/logo.svg" alt="" width="36" height="36"/></span>
       <span class="sel-logo__text"><span class="sel-logo__brand">WeldCheck</span><span class="sel-logo__sub">Pre-weld checklist</span></span>
     </a>
     <nav class="wc-topnav" aria-label="Main">
@@ -75,6 +76,54 @@
 
   <section class="sel-section" style="padding-top:0">
     <div class="sel-wrap">
+      <h2>What is WeldCheck?</h2>
+      <p style="max-width:62ch">WeldCheck is a simple web tool that brings three things together in one place: the checks a welder should confirm before starting, a photo record of the finished weld, and a clear appearance result. It runs in the browser on a phone or laptop, with nothing to install and no account to create.</p>
+      <div class="sel-grid sel-grid--3" style="margin-top:20px">
+        <div class="sel-card">
+          <div class="sel-row__icon" style="margin-bottom:12px"><svg class="ic" aria-hidden="true"><use href="#i-clipboard"></use></svg></div>
+          <h3>Prepare properly</h3>
+          <p style="margin:0;font-size:14.5px">The checklist walks through every basic step before the arc is started, so good habits become routine instead of memory.</p>
+        </div>
+        <div class="sel-card">
+          <div class="sel-row__icon" style="margin-bottom:12px"><svg class="ic" aria-hidden="true"><use href="#i-camera"></use></svg></div>
+          <h3>Check the weld</h3>
+          <p style="margin:0;font-size:14.5px">One phone photo of the finished bead returns a simple category and a short reason, in seconds.</p>
+        </div>
+        <div class="sel-card">
+          <div class="sel-row__icon" style="margin-bottom:12px"><svg class="ic" aria-hidden="true"><use href="#i-history"></use></svg></div>
+          <h3>Keep the record</h3>
+          <p style="margin:0;font-size:14.5px">Every job, checklist, photo, and result is saved, so past samples can be reviewed and compared any time.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sel-section" style="padding-top:0">
+    <div class="sel-wrap">
+      <h2>Common questions</h2>
+      <div class="sel-faq" style="margin-top:14px">
+        <details>
+          <summary>Who is WeldCheck for?</summary>
+          <p>Students learning to weld and small workshops working with mild steel samples. It turns scattered notes and phone photos into one organised record.</p>
+        </details>
+        <details>
+          <summary>Do I need an account?</summary>
+          <p>No. Open the site and start. Records are kept on your own device, so there is nothing to sign up for and nothing to remember.</p>
+        </details>
+        <details>
+          <summary>How does the appearance check work?</summary>
+          <p>You upload a phone photo of the finished weld. The system reads the picture and groups it into one of four simple categories, with a short reason you can understand at a glance. Treat it as a guide.</p>
+        </details>
+        <details>
+          <summary>Is a phone camera good enough?</summary>
+          <p>Yes. Good light on the bead, a steady hand about 15 to 20 cm away, and a plain background give the best results.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section class="sel-section" style="padding-top:0">
+    <div class="sel-wrap">
       <div class="sel-card" id="recentCard">
         <h3>Recent jobs</h3>
         <div id="recentList"><p class="sel-empty" style="padding:24px 8px">No jobs yet. Start your first job to begin the record.</p></div>
@@ -83,11 +132,11 @@
   </section>
 </main>
 
-<footer class="sel-footer"><div class="sel-wrap"><span>WeldCheck · Final year project, Department of Mechanical Engineering, Federal University of Technology, Minna · &copy; <span data-year>2026</span></span> <a href="#about" id="aboutLink" style="margin-left:10px">About this project</a></div></footer>
+<footer class="sel-footer"><div class="sel-wrap"><span>WeldCheck · weldcheck.cc · Final year project, Department of Mechanical Engineering, Federal University of Technology, Minna · &copy; <span data-year>2026</span></span> <a href="#about" id="aboutLink" style="margin-left:10px">About this project</a></div></footer>
 
 <div class="sel-modal" id="welcomeModal" hidden role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
   <div class="sel-modal__card sel-modal__card--celebrate">
-    <div class="sel-modal__ic" style="margin:0 auto 14px"><svg class="ic" aria-hidden="true"><use href="#i-zap"></use></svg></div>
+    <div class="sel-modal__ic" style="margin:0 auto 14px;background:transparent"><img src="assets/logo.svg" alt="" width="52" height="52" style="border-radius:13px"/></div>
     <h2 id="welcomeTitle">Welcome to WeldCheck</h2>
     <p>A web-based pre-welding checklist and weld appearance checking system for mild steel samples, built as a final year project at the Federal University of Technology, Minna.</p>
     <div class="wc-cred">
