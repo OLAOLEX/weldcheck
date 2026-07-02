@@ -256,6 +256,29 @@ a.sel-row:hover { background: var(--sp-surface-2); }
 .wc-cat__name { font-weight: 800; font-size: 14.5px; }
 .wc-cat__sub { font-size: 13px; color: rgba(255,255,255,.65); }
 
+/* Modal (welcome / about-this-project) */
+.sel-modal { position: fixed; inset: 0; z-index: 80; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(20,22,34,.5); opacity: 0; transition: opacity .22s ease; }
+.sel-modal.is-in { opacity: 1; }
+.sel-modal__card { position: relative; background: var(--sp-surface); border-radius: var(--sp-r); box-shadow: var(--sp-sh-2); max-width: 460px; width: 100%; padding: 28px 26px; transform: translateY(12px) scale(.98); transition: transform .22s ease; max-height: calc(100dvh - 40px); overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.sel-modal.is-in .sel-modal__card { transform: none; }
+.sel-modal__ic { display: inline-grid; place-items: center; width: 52px; height: 52px; border-radius: 15px; background: var(--sp-feature); color: var(--sp-accent); margin-bottom: 14px; }
+.sel-modal__ic .ic { width: 26px; height: 26px; }
+.sel-modal__card h2 { font-size: 23px; }
+.sel-modal__card p { font-size: 14.5px; }
+.sel-modal__foot { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; flex-wrap: wrap; }
+.sel-modal__card--celebrate { text-align: center; }
+.sel-modal__card--celebrate .sel-modal__foot { justify-content: center; }
+.wc-cred { display: flex; flex-direction: column; gap: 2px; margin-top: 14px; padding: 14px 16px; background: var(--sp-surface-2); border-radius: 14px; text-align: left; }
+.wc-cred b { font-size: 14.5px; }
+.wc-cred span { font-size: 13px; color: var(--sp-ink-2); }
+
+/* Sample photo gallery (upload page): visual guide + tap-to-load test photos */
+.wc-tpls { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 12px; }
+@media (min-width: 560px) { .wc-tpls { grid-template-columns: repeat(4, 1fr); } }
+.wc-tpl { display: flex; flex-direction: column; gap: 8px; padding: 10px; border: 1.5px solid var(--sp-line); border-radius: 14px; background: var(--sp-surface); font: inherit; font-size: 12.5px; font-weight: 700; color: var(--sp-ink-2); cursor: pointer; text-align: center; transition: border-color .15s ease, transform .12s ease; }
+.wc-tpl:hover { border-color: var(--sp-accent); transform: translateY(-2px); }
+.wc-tpl canvas { display: block; width: 100%; border-radius: 9px; background: var(--sp-surface-2); }
+
 /* FX layer (entrance motion, ported) */
 @keyframes sel-fx-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 .sel-fx-rise { animation: sel-fx-rise .30s cubic-bezier(.22,.61,.36,1) both; }

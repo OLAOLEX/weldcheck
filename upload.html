@@ -53,7 +53,13 @@
       <button class="sel-btn sel-btn--primary sel-btn--lg sel-btn--block" id="checkBtn" style="margin-top:18px" disabled>
         <svg class="ic" aria-hidden="true"><use href="#i-search"></use></svg> Check weld appearance
       </button>
-      <p style="font-size:12.5px;color:var(--sp-ink-3);margin:12px 0 0;text-align:center">The photo stays on this device. Nothing is uploaded to a server.</p>
+      <p style="font-size:12.5px;color:var(--sp-ink-3);margin:12px 0 0;text-align:center" id="privacyNote">The record stays on this device. The photo is only sent out for the appearance check itself.</p>
+    </div>
+
+    <div class="sel-card" style="margin-top:18px">
+      <h3>No weld photo handy? Try a sample</h3>
+      <p style="font-size:13.5px;margin-bottom:0">These are simple drawings that show what each category can look like. Tap one to load it as a test photo and run the full check.</p>
+      <div class="wc-tpls" id="tplGrid"></div>
     </div>
   </div>
 
@@ -72,6 +78,7 @@
 <script src="assets/db.js"></script>
 <script src="assets/app.js"></script>
 <script src="assets/classifier.js"></script>
+<script src="assets/templates.js"></script>
 <script src="assets/fx.js"></script>
 <script>
 (function () {
@@ -97,12 +104,42 @@
     Wc.$("fileInput").value = "";
   }
 
+  /* Downscale the photo to a small JPEG data URL before sending it for the AI check. */
+  function toSendable(img) {
+    var w = img.naturalWidth, h = img.naturalHeight;
+    var scale = Math.min(1, 800 / Math.max(w, h));
+    var c = document.createElement("canvas");
+    c.width = Math.round(w * scale); c.height = Math.round(h * scale);
+    c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+    return c.toDataURL("image/jpeg", 0.85);
+  }
+
+  /* AI check first (deployed with an API key); built-in basic analyzer as the fallback so the
+     app still works offline and on local preview. Local measurements are computed either way
+     so the result page can always show them. */
   function runCheck() {
     var btn = Wc.$("checkBtn");
     btn.classList.add("is-loading");
     var img = Wc.$("previewImg");
+
     var run = function () {
-      WcClassify.classify(img).then(function (res) {
+      var t0 = performance.now();
+      WcClassify.classify(img).then(function (local) {
+        return fetch("/api/check-weld", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ image: toSendable(img) })
+        }).then(function (r) {
+          if (!r.ok) throw new Error("ai unavailable");
+          return r.json();
+        }).then(function (ai) {
+          if (!ai || !ai.key) throw new Error("bad ai reply");
+          return { key: ai.key, confidence: ai.confidence, reason: ai.reason, source: "ai", metrics: local.metrics, ms: Math.round(performance.now() - t0) };
+        }).catch(function () {
+          local.source = "local";
+          return local;
+        });
+      }).then(function (res) {
         job.image = file;
         job.imageType = file.type;
         job.checks = job.checks || {};
@@ -111,6 +148,7 @@
           key: res.key,
           confidence: res.confidence,
           reason: res.reason,
+          source: res.source || "local",
           metrics: res.metrics,
           ms: res.ms,
           checkedAt: Date.now()
@@ -118,13 +156,36 @@
         return WcDb.put(job);
       }).then(function () {
         location.href = "result.html?job=" + job.id;
-      }).catch(function (e) {
+      }).catch(function () {
         btn.classList.remove("is-loading");
         Wc.toast("The check failed. Try a different photo.");
       });
     };
     if (img.complete && img.naturalWidth) run();
     else img.onload = run;
+  }
+
+  /* Sample gallery: guide thumbnails that load as real test photos. */
+  function buildSamples() {
+    var grid = Wc.$("tplGrid");
+    WcTemplates.KINDS.forEach(function (k) {
+      var btn = document.createElement("button");
+      btn.type = "button"; btn.className = "wc-tpl";
+      var cv = document.createElement("canvas");
+      WcTemplates.thumb(cv, k.key);
+      btn.appendChild(cv);
+      var lab = document.createElement("span");
+      lab.textContent = k.label;
+      btn.appendChild(lab);
+      btn.addEventListener("click", function () {
+        WcTemplates.makeFile(k.key).then(function (f) {
+          setFile(f);
+          Wc.toast("Sample loaded. Tap Check weld appearance.");
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+      });
+      grid.appendChild(btn);
+    });
   }
 
   Wc.$("dropZone").addEventListener("click", function () { Wc.$("fileInput").click(); });
@@ -150,6 +211,7 @@
       '<div class="wc-jobstrip__t"><div class="wc-jobstrip__name">Sample ' + Wc.esc(job.sampleNo) + (job.jobName ? " · " + Wc.esc(job.jobName) : "") + "</div>" +
       '<div class="wc-jobstrip__meta">Checklist ' + Wc.preDone(job) + "/" + Wc.CHECKLIST.length + " done · " + Wc.esc(job.electrode) + "</div></div>" +
       '<a class="sel-btn sel-btn--ghost sel-btn--sm" href="checklist.html?job=' + job.id + '">Back</a>';
+    buildSamples();
     Wc.$("page").hidden = false;
     WcFx.reveal(Wc.$("page"), { selector: ".sel-card, .wc-jobstrip, .sel-note", step: 60 });
   }, function () { Wc.$("missing").hidden = false; });

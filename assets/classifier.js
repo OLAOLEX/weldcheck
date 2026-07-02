@@ -78,7 +78,7 @@
     brightImg: 220,    /* mean brightness above this: washed out */
     flat: 16,          /* contrast below this: no visible bead detail */
     holes: 3.0,        /* darkSpots percent at or above this: pits and holes */
-    spatter: 24        /* edgeActivity percent at or above this: busy, spattered surface */
+    spatter: 11        /* edgeActivity percent at or above this: busy, spattered surface */
   };
 
   function decide(m) {

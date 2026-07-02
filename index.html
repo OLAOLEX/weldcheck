@@ -83,7 +83,26 @@
   </section>
 </main>
 
-<footer class="sel-footer"><div class="sel-wrap"><span>WeldCheck · Final year project, Department of Mechanical Engineering, Federal University of Technology, Minna · &copy; <span data-year>2026</span></span></div></footer>
+<footer class="sel-footer"><div class="sel-wrap"><span>WeldCheck · Final year project, Department of Mechanical Engineering, Federal University of Technology, Minna · &copy; <span data-year>2026</span></span> <a href="#about" id="aboutLink" style="margin-left:10px">About this project</a></div></footer>
+
+<div class="sel-modal" id="welcomeModal" hidden role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
+  <div class="sel-modal__card sel-modal__card--celebrate">
+    <div class="sel-modal__ic" style="margin:0 auto 14px"><svg class="ic" aria-hidden="true"><use href="#i-zap"></use></svg></div>
+    <h2 id="welcomeTitle">Welcome to WeldCheck</h2>
+    <p>A web-based pre-welding checklist and weld appearance checking system for mild steel samples, built as a final year project at the Federal University of Technology, Minna.</p>
+    <div class="wc-cred">
+      <b>Abdulsommod Olaoluwa Olaniyi</b>
+      <span>Matric No 2021/1/82532EM · Department of Mechanical Engineering</span>
+    </div>
+    <div class="wc-cred">
+      <b>Supervisor: Engr. Dr. A. A. Abdullahi</b>
+      <span>Department of Mechanical Engineering, FUT Minna</span>
+    </div>
+    <div class="sel-modal__foot">
+      <button class="sel-btn sel-btn--primary sel-btn--block" id="welcomeBtn" type="button">Explore the system</button>
+    </div>
+  </div>
+</div>
 
 <script src="assets/sprite.js"></script>
 <script src="assets/db.js"></script>
@@ -115,6 +134,24 @@
     }
     WcFx.reveal(document.body, { selector: ".sel-stat, .sel-card", step: 60 });
   });
+
+  /* Welcome popup: shows on the first visit (and any time via the About link or #about). */
+  var modal = Wc.$("welcomeModal");
+  function openModal() {
+    modal.hidden = false;
+    requestAnimationFrame(function () { modal.classList.add("is-in"); });
+  }
+  function closeModal() {
+    modal.classList.remove("is-in");
+    setTimeout(function () { modal.hidden = true; }, 240);
+    try { localStorage.setItem("wcWelcomed", "1"); } catch (e) {}
+  }
+  Wc.$("welcomeBtn").addEventListener("click", closeModal);
+  modal.addEventListener("click", function (e) { if (e.target === modal) closeModal(); });
+  Wc.$("aboutLink").addEventListener("click", function (e) { e.preventDefault(); openModal(); });
+  var welcomed = false;
+  try { welcomed = !!localStorage.getItem("wcWelcomed"); } catch (e) {}
+  if (!welcomed || location.hash === "#about") openModal();
 })();
 </script>
 </body>

@@ -33,6 +33,7 @@
       <h2 id="catLabel" style="margin-top:14px"></h2>
       <p id="catMeaning" style="margin-bottom:6px"></p>
       <p id="catReason" style="font-size:14px;color:var(--sp-ink-3)"></p>
+      <span class="sel-badge" id="engineBadge"></span>
     </div>
 
     <div class="sel-card" style="margin-top:18px">
@@ -46,7 +47,7 @@
       <div class="wc-metrics" id="metrics"></div>
       <div class="sel-note sel-note--info" style="margin-top:14px">
         <svg class="ic" aria-hidden="true"><use href="#i-info"></use></svg>
-        <span>Prototype analyzer: this result comes from simple image measurements and is indicative only. It supports learning and record keeping, and does not replace inspection by an experienced welder.</span>
+        <span id="engineNote">This result is indicative only. It supports learning and record keeping, and does not replace inspection by an experienced welder.</span>
       </div>
     </div>
 
@@ -108,6 +109,12 @@
     Wc.$("catLabel").textContent = cat.label;
     Wc.$("catMeaning").textContent = cat.meaning;
     Wc.$("catReason").textContent = res.reason || "";
+    var isAi = res.source === "ai";
+    Wc.$("engineBadge").textContent = isAi ? "Checked with the AI image service" : "Checked with the built-in basic analyzer";
+    Wc.$("engineNote").textContent = (isAi
+      ? "This result comes from an image recognition service reading the photo."
+      : "This result comes from the built-in basic analyzer (simple image measurements), used when the AI service is not available.") +
+      " It is indicative only: it supports learning and record keeping, and does not replace inspection by an experienced welder.";
 
     if (job.image) {
       Wc.$("weldImg").src = URL.createObjectURL(job.image);
