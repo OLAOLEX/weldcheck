@@ -391,6 +391,9 @@ a.sel-row:hover { background: var(--sp-surface-2); }
 .wc-result-layout { align-items: start; }
 .wc-report-check { display: flex; gap: 9px; padding: 9px 0; border-bottom: 1px solid var(--sp-line); font-size: 13px; color: var(--sp-ink-2); }
 .wc-report-check span { color: var(--sp-success); font-weight: 900; }
+.wc-dashboard-empty { margin-top: 22px; min-height: 280px; display: grid; place-items: center; align-content: center; gap: 10px; text-align: center; }
+.wc-dashboard-empty h2, .wc-dashboard-empty p { margin: 0; }
+.wc-dashboard-empty .sel-btn { margin-top: 8px; }
 .wc-stats-6 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
 @media (min-width: 720px) { .wc-stats-6 { grid-template-columns: repeat(3, 1fr); } }
 @media (min-width: 1000px) { .wc-stats-6 { grid-template-columns: repeat(6, 1fr); } }
@@ -458,6 +461,31 @@ a.sel-row:hover { background: var(--sp-surface-2); }
   .wc-topnav { margin-left: 0; }
   .wc-topnav a, .wc-topnav .sel-account { display: none; }
   .sel-theme { margin-left: 0; }
+}
+@media (max-width: 560px) {
+  .sel-wrap, .sel-narrow { padding-left: 16px; padding-right: 16px; }
+  .sel-section { padding: 24px 0 36px; }
+  .sel-body h1 { font-size: 28px; }
+  .sel-body h2 { font-size: 22px; }
+  .sel-card { padding: 18px; border-radius: 16px; }
+  .sel-narrow:has(.wc-stepper) > .sel-steps { display: none; }
+  .wc-stepper { margin-bottom: 18px; }
+  .wc-stepper::before { top: 14px; }
+  .wc-stepper__item { gap: 4px; }
+  .wc-stepper__item span { width: 30px; height: 30px; }
+  .wc-form-note { margin: 14px 0; padding: 12px 13px; font-size: 13px; }
+  .wc-form-section { padding: 2px 0 10px; }
+  .wc-form-section:not(:first-child) { margin-top: 6px; padding-top: 16px; }
+  .sel-field { gap: 6px; margin-bottom: 14px; }
+  .sel-field label { font-size: 13.5px; }
+  .sel-input, .sel-select, .sel-textarea { min-height: 48px; padding: 12px 14px; border-radius: 12px; }
+  .sel-textarea { min-height: 82px; }
+  .sel-btn--lg { min-height: 52px; padding: 14px 18px; font-size: 15px; }
+  .sel-hero__cta { gap: 10px; margin-top: 20px; }
+  .sel-hero__cta > .sel-btn { flex: 1 1 100%; }
+  .wc-page-head .sel-hero__cta { width: 100%; }
+  .wc-dashboard-empty { min-height: 250px; }
+  .sel-footer { padding: 24px 0; }
 }
 @media (max-width: 390px) {
   .sel-logo__text { display: none; }
