@@ -2,7 +2,7 @@ var crypto = require("crypto");
 var CONDITION_CODES = ["visible_porosity", "undercut", "excessive_spatter", "irregular_bead"];
 var RESULT_SCHEMA = {
   type: "object", additionalProperties: false,
-  required: ["status", "confidence_level", "confidence_reason", "image_quality_status", "image_quality_issues", "summary", "conditions", "observations", "assessment_reason", "possible_causes", "recommended_actions", "limitations"],
+  required: ["status", "confidence_level", "confidence_reason", "image_quality_status", "image_quality_issues", "summary", "conditions", "observations", "assessment_reason", "limitations"],
   properties: {
     status: { type: "string", enum: ["acceptable", "visible_issues", "retake"] },
     confidence_level: { type: "string", enum: ["low", "medium", "high"] },
@@ -13,8 +13,6 @@ var RESULT_SCHEMA = {
     conditions: { type: "array", items: { type: "string", enum: CONDITION_CODES } },
     observations: { type: "array", minItems: 1, maxItems: 6, items: { type: "string", description: "A concrete, location-aware visible observation without explaining why it happened." } },
     assessment_reason: { type: "string", description: "Connect only the listed observations to the chosen status and allowed conditions." },
-    possible_causes: { type: "array", maxItems: 5, items: { type: "string", description: "A cautious possibility using may, might, or could; never a confirmed cause." } },
-    recommended_actions: { type: "array", minItems: 1, maxItems: 6, items: { type: "string", description: "A short, practical next step. Recommend qualified review when the consequence is safety-critical." } },
     limitations: { type: "array", minItems: 2, maxItems: 4, items: { type: "string" } }
   }
 };
@@ -25,8 +23,7 @@ var INSTRUCTIONS = [
   "For a usable image, return status acceptable only when none of the allowed visible conditions is evident. Otherwise return visible_issues and every condition that is visibly supported.",
   "Allowed conditions: visible_porosity (visible rounded pits or holes), undercut (a visible groove along a weld toe), excessive_spatter (many scattered metal droplets), irregular_bead (clearly inconsistent bead shape or width).",
   "Every observation must name a concrete visible feature and, when possible, where it appears. Do not praise or criticise the welder, skill, technique, settings, preparation, or workmanship from appearance alone.",
-  "Possible causes are optional. When used, each must contain may, might, or could and must be presented as something to check, never as a fact. For acceptable status, return no possible causes.",
-  "Recommended actions must be practical and proportionate: retake guidance for retake, review or correct the visible area for visible issues, and save or confirm the record for acceptable appearance.",
+  "Do not infer causes or recommend machine-setting changes. The application handles setup validation and learning guidance separately using approved exercise rules.",
   "Use short sentences and familiar words. Explain technical terms using visible shapes, such as a groove at the weld edge or rounded pits.",
   "Do not claim internal-defect detection, penetration, mechanical strength, safety certification, pass/fail against a welding code, or replacement of a qualified inspector.",
   "Always state that only visible surface appearance is assessed and that internal condition or strength requires suitable tests and qualified review."
@@ -69,17 +66,18 @@ function validResult(result) {
   if (!Array.isArray(result.conditions) || result.conditions.some(function (c) { return CONDITION_CODES.indexOf(c) < 0; })) return false;
   if (result.status === "acceptable" && result.conditions.length) return false;
   if (result.status === "visible_issues" && !result.conditions.length) return false;
-  return ["observations", "possible_causes", "recommended_actions", "limitations", "image_quality_issues"].every(function (k) { return Array.isArray(result[k]); });
+  return ["observations", "limitations", "image_quality_issues"].every(function (k) { return Array.isArray(result[k]); });
 }
 function normalizeResult(result) {
   var limits = { confidence_reason: 300, summary: 400, assessment_reason: 500 };
   Object.keys(limits).forEach(function (key) { result[key] = String(result[key] || "").slice(0, limits[key]); });
-  var arrays = { image_quality_issues: 5, conditions: 4, observations: 6, possible_causes: 5, recommended_actions: 6, limitations: 4 };
+  var arrays = { image_quality_issues: 5, conditions: 4, observations: 6, limitations: 4 };
   Object.keys(arrays).forEach(function (key) {
     result[key] = Array.isArray(result[key]) ? result[key].map(function (value) { return String(value).slice(0, 260); }).slice(0, arrays[key]) : [];
   });
   result.conditions = Array.from(new Set(result.conditions));
-  if (result.status === "acceptable") result.possible_causes = [];
+  result.possible_causes = [];
+  result.recommended_actions = [];
   if (result.status === "retake") { result.conditions = []; result.image_quality_status = "poor"; }
   var requiredLimits = [
     "This result covers only the visible surface shown in this photograph.",
@@ -103,8 +101,8 @@ module.exports = async function handler(req, res) {
     if (!user) return json(res, 401, { error: "Your session has expired. Refresh and try again." });
     var usage = await claimLimit(token, !!user.is_anonymous);
     if (!usage.allowed) return json(res, 429, { error: "Daily AI inspection limit reached.", limit: usage.limit });
-    var job = req.body.job || {};
-    var context = ["Inspect this completed SMAW mild-steel weld photograph.", "Recorded job details are context only. Do not use them as visible evidence and do not judge whether a setting was correct:", "Joint: " + String(job.jointType || "Not supplied"), "Plate thickness: " + String(job.plateThickness || "Not supplied") + " mm", "Electrode: " + String(job.electrodeClassification || "Not supplied") + " " + String(job.electrodeSize || "") + " mm", "Position: " + String(job.weldingPosition || "Not supplied"), "Current: " + String(job.currentAmp || "Not supplied") + " A"].join("\n");
+    var attempt = req.body.attempt || {}, exercise = req.body.exercise || {};
+    var context = ["Inspect this completed SMAW mild-steel weld photograph.", "The following recorded context is for the report only. It is not visual evidence; do not judge it and do not infer causes from it:", "Exercise: " + String(exercise.code || exercise.name || "Not supplied"), "Joint: " + String(exercise.jointType || "Not supplied"), "Recorded plate thickness: " + String(attempt.plateThickness || "Not supplied") + " mm", "Recorded electrode: " + String(attempt.electrodeClassification || "Not supplied") + " " + String(attempt.electrodeSize || "") + " mm", "Recorded position: " + String(attempt.weldingPosition || "Not supplied"), "Recorded current: " + String(attempt.currentAmp || "Not supplied") + " A"].join("\n");
     var started = Date.now();
     var response = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",

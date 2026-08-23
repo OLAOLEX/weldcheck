@@ -20,6 +20,8 @@ jobs:
           node-version: 22
       - name: Check JavaScript syntax
         run: for file in api/*.js assets/*.js; do node --check "$file"; done
+      - name: Test learning-cycle rules
+        run: node tests/learning.test.js
       - name: Check Python syntax
         run: python3 -m py_compile dev-server.py
       - name: Check required public files

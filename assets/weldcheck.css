@@ -394,6 +394,8 @@ a.sel-row:hover { background: var(--sp-surface-2); }
 .wc-dashboard-empty { margin-top: 22px; min-height: 280px; display: grid; place-items: center; align-content: center; gap: 10px; text-align: center; }
 .wc-dashboard-empty h2, .wc-dashboard-empty p { margin: 0; }
 .wc-dashboard-empty .sel-btn { margin-top: 8px; }
+body:has(#emptyDashboard:not([hidden])) #csvBtn,
+body:has(#emptyDashboard:not([hidden])) #jsonBtn { display: none; }
 .wc-stats-6 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
 @media (min-width: 720px) { .wc-stats-6 { grid-template-columns: repeat(3, 1fr); } }
 @media (min-width: 1000px) { .wc-stats-6 { grid-template-columns: repeat(6, 1fr); } }
@@ -433,9 +435,9 @@ a.sel-row:hover { background: var(--sp-surface-2); }
 .wc-auth-help { margin: 12px 4px 0 !important; font-size: 12px !important; text-align: center; }
 .wc-sr-only { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0,0,0,0) !important; white-space: nowrap !important; border: 0 !important; }
 
-/* A visible three-stage path keeps field users oriented. */
-.wc-stepper { display: grid; grid-template-columns: repeat(3, 1fr); list-style: none; padding: 0; margin: 0 0 26px; position: relative; }
-.wc-stepper::before { content: ""; position: absolute; left: 16.66%; right: 16.66%; top: 16px; height: 2px; background: var(--sp-line); }
+/* A visible four-stage path keeps learners oriented. */
+.wc-stepper { display: grid; grid-template-columns: repeat(4, 1fr); list-style: none; padding: 0; margin: 0 0 26px; position: relative; }
+.wc-stepper::before { content: ""; position: absolute; left: 12.5%; right: 12.5%; top: 16px; height: 2px; background: var(--sp-line); }
 .wc-stepper__item { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--sp-ink-3); text-align: center; }
 .wc-stepper__item span { width: 34px; height: 34px; display: grid; place-items: center; border: 2px solid var(--sp-line); border-radius: 50%; background: var(--sp-page); font-size: 12px; font-weight: 800; }
 .wc-stepper__item b { font-size: 11px; }
@@ -443,6 +445,9 @@ a.sel-row:hover { background: var(--sp-surface-2); }
 .wc-stepper__item.is-current span { border-color: var(--sp-accent); background: var(--sp-accent-soft); }
 .wc-stepper__item.is-complete { color: var(--sp-success); }
 .wc-stepper__item.is-complete span { border-color: var(--sp-success); background: var(--sp-success-soft); }
+.wc-check__txt { display: flex; flex-direction: column; gap: 3px; text-align: left; }
+.wc-check__txt small { color: var(--sp-ink-2); font-size: 11.5px; font-weight: 500; line-height: 1.4; }
+.wc-ready-card { border-color: color-mix(in srgb, var(--sp-success) 45%, var(--sp-line)); }
 
 /* Avoid blank data-backed pages and explain long-running AI work. */
 .wc-page-loading { min-height: 36vh; display: flex; align-items: center; justify-content: center; gap: 14px; color: var(--sp-ink); }

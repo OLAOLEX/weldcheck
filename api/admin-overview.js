@@ -28,14 +28,14 @@ function provider(user) {
   var names = (user.identities || []).map(function (identity) { return identity.provider; });
   return names.indexOf("google") >= 0 ? "Google" : (names[0] || "Account");
 }
-function stage(userJobs, userInspections) {
+function stage(userJobs, userAttempts, userInspections) {
   if (userInspections.length) return "Result reviewed";
-  if (!userJobs.length) return "No job started";
-  var latest = userJobs.slice().sort(function (a, b) { return new Date(b.updated_at) - new Date(a.updated_at); })[0];
-  var done = checklistCount(latest.checklist_json);
-  if (done >= 9) return "Ready for photograph";
-  if (done) return "Checklist " + done + "/9";
-  return "Job details saved";
+  if (!userJobs.length) return "No exercise started";
+  if (!userAttempts.length) return "Exercise selected";
+  var latest = userAttempts.slice().sort(function (a, b) { return new Date(b.updated_at) - new Date(a.updated_at); })[0];
+  if (latest.readiness_status === "ready") return "Ready for weld photo";
+  if (latest.readiness_status === "check_setup") return "Setup needs attention";
+  return "Setup in progress";
 }
 module.exports = async function handler(req, res) {
   if (req.method !== "GET") return send(res, 405, { error: "Use GET." });
@@ -49,21 +49,24 @@ module.exports = async function handler(req, res) {
     var data = await Promise.all([
       serviceFetch("/auth/v1/admin/users?page=1&per_page=1000"),
       serviceFetch("/rest/v1/jobs?select=id,user_id,sample_no,job_name,status,checklist_json,created_at,updated_at&order=created_at.desc&limit=1000"),
-      serviceFetch("/rest/v1/inspections?select=id,job_id,user_id,status,conditions,human_verdict,comparison_result,response_time_ms,created_at&order=created_at.desc&limit=1000")
+      serviceFetch("/rest/v1/attempts?select=id,job_id,user_id,attempt_no,readiness_status,supervisor_status,created_at,updated_at&order=created_at.desc&limit=1000"),
+      serviceFetch("/rest/v1/inspections?select=id,job_id,attempt_id,user_id,status,conditions,human_verdict,response_time_ms,created_at&order=created_at.desc&limit=1000")
     ]);
-    var users = data[0].users || [], jobs = data[1] || [], inspections = data[2] || [], now = Date.now(), week = 7 * 86400000;
+    var users = data[0].users || [], jobs = data[1] || [], attempts = data[2] || [], inspections = data[3] || [], now = Date.now(), week = 7 * 86400000;
     var rows = users.map(function (user) {
       var mineJobs = jobs.filter(function (job) { return job.user_id === user.id; });
+      var mineAttempts = attempts.filter(function (attempt) { return attempt.user_id === user.id; });
       var mineInspections = inspections.filter(function (inspection) { return inspection.user_id === user.id; });
-      var last = [user.last_sign_in_at, user.updated_at].concat(mineJobs.map(function (j) { return j.updated_at; }), mineInspections.map(function (i) { return i.created_at; })).filter(Boolean).sort().pop() || user.created_at;
-      return { id: user.id, email: user.email || "Guest account", accountType: provider(user), joinedAt: user.created_at, lastActiveAt: last, jobs: mineJobs.length, inspections: mineInspections.length, workflowStage: stage(mineJobs, mineInspections) };
+      var last = [user.last_sign_in_at, user.updated_at].concat(mineJobs.map(function (j) { return j.updated_at; }), mineAttempts.map(function (a) { return a.updated_at; }), mineInspections.map(function (i) { return i.created_at; })).filter(Boolean).sort().pop() || user.created_at;
+      return { id: user.id, email: user.email || "Guest account", accountType: provider(user), joinedAt: user.created_at, lastActiveAt: last, jobs: mineJobs.length, attempts: mineAttempts.length, inspections: mineInspections.length, workflowStage: stage(mineJobs, mineAttempts, mineInspections) };
     }).sort(function (a, b) { return new Date(b.lastActiveAt) - new Date(a.lastActiveAt); });
     return send(res, 200, {
       generatedAt: new Date().toISOString(),
-      totals: { users: rows.length, googleUsers: rows.filter(function (u) { return u.accountType === "Google"; }).length, guestUsers: rows.filter(function (u) { return u.accountType === "Guest"; }).length, jobs: jobs.length, inspections: inspections.length, activeSevenDays: rows.filter(function (u) { return now - new Date(u.lastActiveAt).getTime() <= week; }).length },
+      totals: { users: rows.length, googleUsers: rows.filter(function (u) { return u.accountType === "Google"; }).length, guestUsers: rows.filter(function (u) { return u.accountType === "Guest"; }).length, jobs: jobs.length, attempts: attempts.length, inspections: inspections.length, activeSevenDays: rows.filter(function (u) { return now - new Date(u.lastActiveAt).getTime() <= week; }).length },
       users: rows,
       recentJobs: jobs.slice(0, 12).map(function (j) { return { id: j.id, sampleNo: j.sample_no, jobName: j.job_name || "", status: j.status, checklistDone: checklistCount(j.checklist_json), createdAt: j.created_at, updatedAt: j.updated_at }; }),
-      recentInspections: inspections.slice(0, 12).map(function (i) { return { id: i.id, jobId: i.job_id, status: i.status, conditions: i.conditions || [], humanVerdict: i.human_verdict, comparisonResult: i.comparison_result, responseTimeMs: i.response_time_ms, createdAt: i.created_at }; })
+      recentAttempts: attempts.slice(0, 12).map(function (a) { return { id:a.id, jobId:a.job_id, attemptNo:a.attempt_no, readinessStatus:a.readiness_status, supervisorStatus:a.supervisor_status, createdAt:a.created_at, updatedAt:a.updated_at }; }),
+      recentInspections: inspections.slice(0, 12).map(function (i) { return { id: i.id, jobId: i.job_id, attemptId:i.attempt_id, status: i.status, conditions: i.conditions || [], humanVerdict: i.human_verdict, responseTimeMs: i.response_time_ms, createdAt: i.created_at }; })
     });
   } catch (error) {
     console.error("admin-overview failed", error);

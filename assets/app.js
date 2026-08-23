@@ -49,17 +49,19 @@
     return CHECKLIST.reduce(function (n, item) { return n + (job.checks && job.checks[item.key] ? 1 : 0); }, 0);
   }
   function nextPage(job) {
-    if (job.latestInspectionId) return "/result?job=" + encodeURIComponent(job.id) + "&inspection=" + encodeURIComponent(job.latestInspectionId);
-    if (doneCount(job) === CHECKLIST.length) return "/upload?job=" + encodeURIComponent(job.id);
-    return "/checklist?job=" + encodeURIComponent(job.id);
+    var attempt = job.latestAttemptId ? "&attempt=" + encodeURIComponent(job.latestAttemptId) : "";
+    if (job.latestInspectionId) return "/result?job=" + encodeURIComponent(job.id) + attempt + "&inspection=" + encodeURIComponent(job.latestInspectionId);
+    if (job.latestReadinessStatus === "ready") return "/upload?job=" + encodeURIComponent(job.id) + attempt;
+    return "/checklist?job=" + encodeURIComponent(job.id) + attempt;
   }
   function statusPill(job) {
     if (job.latestStatus) {
       var st = STATUSES[job.latestStatus] || STATUSES.retake;
       return '<span class="sel-state-pill sel-state-pill--' + st.tone + '">' + esc(st.label) + "</span>";
     }
-    if (doneCount(job) === CHECKLIST.length) return '<span class="sel-state-pill sel-state-pill--soon">Awaiting photo</span>';
-    return '<span class="sel-state-pill sel-state-pill--soon">Checklist ' + doneCount(job) + "/" + CHECKLIST.length + "</span>";
+    if (job.latestReadinessStatus === "ready") return '<span class="sel-state-pill sel-state-pill--soon">Ready to weld</span>';
+    if (job.latestAttemptId) return '<span class="sel-state-pill sel-state-pill--soon">Setup check needed</span>';
+    return '<span class="sel-state-pill sel-state-pill--soon">Not started</span>';
   }
   function compareConditions(system, reference) {
     var a = Array.from(new Set(system || [])).sort(), b = Array.from(new Set(reference || [])).sort();
@@ -91,9 +93,9 @@
     if (btn) btn.setAttribute("aria-label", isDark() ? "Switch to light mode" : "Switch to dark mode");
   }
   function addGuidedStepper() {
-    var badge = document.querySelector(".sel-steps"), match = badge && badge.textContent.match(/Step\s+(\d)\s+of\s+3/i);
+    var badge = document.querySelector(".sel-steps"), match = badge && badge.textContent.match(/Step\s+(\d)\s+of\s+4/i);
     if (!match || document.querySelector(".wc-stepper")) return;
-    var current = Number(match[1]), labels = ["Job details", "Preparation", "Weld photo"], list = document.createElement("ol");
+    var current = Number(match[1]), labels = ["Exercise", "Setup", "Weld photo", "Review"], list = document.createElement("ol");
     list.className = "wc-stepper"; list.setAttribute("aria-label", "Inspection progress");
     list.innerHTML = labels.map(function (label, index) {
       var n = index + 1, state = n < current ? " is-complete" : (n === current ? " is-current" : "");
