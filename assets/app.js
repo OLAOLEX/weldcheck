@@ -90,11 +90,37 @@
     if (use) use.setAttribute("href", isDark() ? "#i-sun" : "#i-moon");
     if (btn) btn.setAttribute("aria-label", isDark() ? "Switch to light mode" : "Switch to dark mode");
   }
+  function addGuidedStepper() {
+    var badge = document.querySelector(".sel-steps"), match = badge && badge.textContent.match(/Step\s+(\d)\s+of\s+3/i);
+    if (!match || document.querySelector(".wc-stepper")) return;
+    var current = Number(match[1]), labels = ["Job details", "Preparation", "Weld photo"], list = document.createElement("ol");
+    list.className = "wc-stepper"; list.setAttribute("aria-label", "Inspection progress");
+    list.innerHTML = labels.map(function (label, index) {
+      var n = index + 1, state = n < current ? " is-complete" : (n === current ? " is-current" : "");
+      return '<li class="wc-stepper__item' + state + '"' + (n === current ? ' aria-current="step"' : '') + '><span>' + (n < current ? "✓" : n) + '</span><b>' + label + '</b></li>';
+    }).join("");
+    badge.parentNode.insertBefore(list, badge.nextSibling);
+  }
+  function addLoadingState() {
+    var page = document.getElementById("page"), main = document.querySelector("main");
+    if (!page || !page.hidden || !main || document.querySelector(".wc-page-loading")) return;
+    var loader = document.createElement("div"); loader.className = page.classList.contains("sel-wrap") ? "sel-wrap wc-page-loading" : "sel-narrow wc-page-loading";
+    loader.setAttribute("role", "status"); loader.setAttribute("aria-live", "polite");
+    loader.innerHTML = '<span class="wc-loader" aria-hidden="true"></span><div><b>Loading your workspace</b><span>Retrieving the latest private record…</span></div>';
+    main.insertBefore(loader, main.firstChild);
+    var observer = new MutationObserver(function () {
+      var missing = document.getElementById("missing");
+      if (!page.hidden || (missing && !missing.hidden)) { loader.remove(); observer.disconnect(); }
+    });
+    observer.observe(page, { attributes: true, attributeFilter: ["hidden"] });
+    var missing = document.getElementById("missing"); if (missing) observer.observe(missing, { attributes: true, attributeFilter: ["hidden"] });
+  }
   function initChrome() {
     var saved = "";
     try { saved = localStorage.getItem("wcTheme") || ""; } catch (e) {}
     if (saved) document.body.classList.add("theme-" + saved);
     var btn = $("themeBtn"); updateTheme(btn);
+    if (btn) btn.type = "button";
     if (btn) btn.addEventListener("click", function () {
       var next = isDark() ? "light" : "dark";
       document.body.classList.remove("theme-dark", "theme-light"); document.body.classList.add("theme-" + next);
@@ -104,6 +130,7 @@
     var page = document.body.getAttribute("data-page");
     document.querySelectorAll("[data-nav]").forEach(function (a) { if (a.getAttribute("data-nav") === page) a.classList.add("is-active"); });
     document.querySelectorAll("[data-year]").forEach(function (el) { el.textContent = new Date().getFullYear(); });
+    addGuidedStepper(); addLoadingState();
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initChrome); else initChrome();
   window.Wc = { CHECKLIST: CHECKLIST, CONDITIONS: CONDITIONS, STATUSES: STATUSES, $: $, esc: esc, param: param, uid: uid, fmtDate: fmtDate, toast: toast, doneCount: doneCount, preDone: doneCount, nextPage: nextPage, statusPill: statusPill, compareConditions: compareConditions, conditionLabels: conditionLabels, download: download };
