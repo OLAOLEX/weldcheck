@@ -33,6 +33,12 @@
   }
   function buildAccount(nav, state) {
     var copy = accountCopy(state), btn = document.createElement("button");
+    if (!nav.querySelector('[data-nav="guide"]')) {
+      var help = document.createElement("a");
+      help.href = "/guide"; help.dataset.nav = "guide";
+      help.innerHTML = icon("i-info") + '<span class="wc-navlabel">Help</span>';
+      nav.insertBefore(help, document.getElementById("themeBtn"));
+    }
     btn.type = "button"; btn.id = "accountBtn"; btn.className = "sel-account";
     btn.setAttribute("aria-haspopup", "dialog");
     btn.innerHTML = '<span class="wc-account-dot' + (state.configured ? " is-online" : "") + '"></span>' + icon("i-user") + '<span>' + Wc.esc(copy.label) + '</span>';
@@ -64,7 +70,9 @@
     toggle.setAttribute("aria-label", "Open navigation"); toggle.setAttribute("aria-expanded", "false"); toggle.setAttribute("aria-controls", "mobileNav");
     toggle.innerHTML = icon("i-menu"); nav.parentNode.insertBefore(toggle, nav);
     var drawer = document.createElement("nav"); drawer.className = "wc-mobile-nav"; drawer.id = "mobileNav"; drawer.hidden = true; drawer.setAttribute("aria-label", "Mobile navigation");
-    drawer.innerHTML = '<div class="sel-wrap wc-mobile-nav__inner"><a href="/">' + icon("i-home") + '<span><b>Home</b><small>Overview and recent jobs</small></span></a><a href="/new-job">' + icon("i-plus") + '<span><b>New inspection</b><small>Start a guided SMAW check</small></span></a><a href="/history">' + icon("i-history") + '<span><b>Dashboard</b><small>History, reports and exports</small></span></a><button type="button" id="mobileAccount">' + icon("i-user") + '<span><b>' + (authState && authState.isGuest ? "Sign in with Google" : "Account and sync") + '</b><small>' + (authState && authState.isGuest ? "Keep guest records across devices" : "Manage this device session") + '</small></span></button></div>';
+    var accountLabel = !authState || !authState.configured ? "Access status" : (authState.isGuest ? "Sign in with Google" : "Account and sync");
+    var accountSub = !authState || !authState.configured ? "Local drafts only" : (authState.isGuest ? "Keep guest records across devices" : "Manage this device session");
+    drawer.innerHTML = '<div class="sel-wrap wc-mobile-nav__inner"><a href="/">' + icon("i-home") + '<span><b>Home</b><small>Overview and recent jobs</small></span></a><a href="/new-job">' + icon("i-plus") + '<span><b>New inspection</b><small>Start a guided SMAW check</small></span></a><a href="/history">' + icon("i-history") + '<span><b>Dashboard</b><small>History, reports and downloads</small></span></a><a href="/guide">' + icon("i-info") + '<span><b>Help and guide</b><small>Learn the steps and download the PDF</small></span></a><button type="button" id="mobileAccount">' + icon("i-user") + '<span><b>' + accountLabel + '</b><small>' + accountSub + '</small></span></button></div>';
     header.appendChild(drawer);
     function close() { drawer.hidden = true; toggle.setAttribute("aria-expanded", "false"); toggle.setAttribute("aria-label", "Open navigation"); }
     toggle.onclick = function () { var opening = drawer.hidden; drawer.hidden = !opening; toggle.setAttribute("aria-expanded", String(opening)); toggle.setAttribute("aria-label", opening ? "Close navigation" : "Open navigation"); };

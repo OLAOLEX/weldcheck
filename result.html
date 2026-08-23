@@ -4,9 +4,9 @@
 <div class="sel-grid sel-grid--2 wc-result-layout"><div>
   <section class="sel-card wc-result-hero"><div class="wc-result-hero__ic" id="heroIc"><svg class="ic"><use id="heroUse" href="#i-check-circle"></use></svg></div><span class="sel-state-pill" id="statusPill"></span><h2 id="statusLabel"></h2><p id="summary"></p><div class="wc-tags" id="conditions"></div><span class="sel-badge" id="confidence"></span></section>
   <section class="sel-card wc-section-card"><h3>Checked photograph</h3><div class="wc-preview"><img id="weldImg" alt="Checked weld sample"/></div><div class="wc-metrics" id="metrics"></div></section>
-  <section class="sel-card wc-section-card"><h3>Visible observations</h3><ul class="wc-list" id="observations"></ul><h3>Why WeldCheck returned this result</h3><p id="reason"></p></section>
-  <section class="sel-card wc-section-card"><h3>Possible contributing factors</h3><ul class="wc-list" id="causes"></ul><h3>Recommended actions</h3><ol class="wc-list" id="actions"></ol></section>
-  <section class="sel-card wc-section-card"><h3>Inspection limitations</h3><ul class="wc-list" id="limitations"></ul></section>
+  <section class="sel-card wc-section-card"><h3>What can be seen</h3><ul class="wc-list" id="observations"></ul><h3>Why this status was returned</h3><p id="reason"></p></section>
+  <section class="sel-card wc-section-card"><h3>Possible reasons to check</h3><p class="wc-tiny">These are possibilities, not confirmed causes.</p><ul class="wc-list" id="causes"></ul><h3>What to do next</h3><ol class="wc-list" id="actions"></ol></section>
+  <section class="sel-card wc-section-card"><h3>What this photograph cannot tell you</h3><ul class="wc-list" id="limitations"></ul></section>
 </div><div>
   <section class="sel-card"><h3>Job details</h3><div class="sel-rows" id="jobRows"></div><h3 style="margin-top:18px">Pre-weld checklist</h3><div id="checkRows"></div></section>
   <section class="sel-card wc-section-card no-print"><h3>Does the result match your observation?</h3><div class="wc-choice-row"><button class="sel-btn sel-btn--ghost sel-btn--sm" data-verdict="matches">Result matches</button><button class="sel-btn sel-btn--ghost sel-btn--sm" data-verdict="corrected">Correct conditions</button><button class="sel-btn sel-btn--ghost sel-btn--sm" data-verdict="not_sure">Not sure</button></div><div id="correctionBox" hidden><p>Select the visible conditions you observed. Leave all empty for acceptable appearance.</p><div class="wc-condition-grid" id="correctedChecks"></div></div><p class="wc-saved" id="verdictSaved"></p></section>

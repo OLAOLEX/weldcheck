@@ -30,10 +30,12 @@
     });
   }
   function currentUser() { return ensureSession().then(function (s) { return s && s.user; }); }
-  function google() {
+  function google(redirectPath) {
     return currentUser().then(function (user) {
       if (!client) throw new Error("Cloud access is not configured.");
-      var options = { redirectTo: location.origin + "/" };
+      var path = redirectPath || "/";
+      if (path.charAt(0) !== "/") path = "/" + path;
+      var options = { redirectTo: location.origin + path };
       return user && user.is_anonymous ? client.auth.linkIdentity({ provider: "google", options: options }) : client.auth.signInWithOAuth({ provider: "google", options: options });
     });
   }

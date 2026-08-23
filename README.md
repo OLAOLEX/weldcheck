@@ -11,7 +11,9 @@ Cloud-backed SMAW job records, pre-welding checks, photograph-quality screening,
 5. A suitable photograph is sent to the protected AI endpoint for a structured visible-surface assessment.
 6. Review all visible conditions, observations, possible contributing factors, actions, and limitations.
 7. Confirm/correct the result, optionally add a supervised reference assessment, and print the report.
-8. Use the dashboard or export CSV/JSON data.
+8. Use the dashboard, download a spreadsheet or keep a full backup.
+
+The in-app Help page and downloadable A4 PDF guide explain the same flow in plain language.
 
 WeldCheck assesses visible surface appearance only. It does not determine internal weld condition, penetration, mechanical strength, or welding-code compliance.
 
@@ -51,11 +53,23 @@ SUPABASE_PUBLISHABLE_KEY
 OPENAI_API_KEY
 OPENAI_MODEL                 optional; defaults to gpt-4o-mini
 AI_DAILY_LIMIT               optional shared override
+SUPABASE_SERVICE_ROLE_KEY    server only; required for /admin
+ADMIN_EMAILS                 comma-separated Google emails allowed to open /admin
 ```
 
 Without `AI_DAILY_LIMIT`, the endpoint permits 5 AI checks per day for anonymous guests and 20 for Google-linked users. When the override is present, that value applies to both.
 
 `SUPABASE_PUBLISHABLE_KEY` is returned to the browser by `/api/config`. Never use a Supabase secret/service-role key in that variable or browser code.
+
+### Admin setup
+
+The private `/admin` page uses normal Google sign-in, then verifies the account email on the server. Add `SUPABASE_SERVICE_ROLE_KEY` and `ADMIN_EMAILS` in Vercel, apply them to Production, Preview and Development as appropriate, then redeploy. Example:
+
+```text
+ADMIN_EMAILS=owner@example.com
+```
+
+The service-role key is used only inside `api/admin-overview.js`; it is never returned by `/api/config` or included in browser files. The first admin version is read-only and shows accounts, signups, recent activity, jobs, inspections and workflow progress. It does not collect physical location.
 
 ## Main structure
 
@@ -66,8 +80,11 @@ checklist.html         Nine preparation checks
 upload.html            Photograph quality gate and inspection request
 result.html            Full result, confirmation, reference, report, timeline
 history.html           Dashboard, filters, CSV and JSON exports
+guide.html             Plain-language help and downloadable PDF guide
+admin.html             Read-only, Google-protected project administration
 api/config.js          Public browser configuration
 api/check-weld.js      Authenticated, rate-limited structured AI inspection
+api/admin-overview.js  Allowlisted server-side admin overview
 assets/cloud.js        Supabase auth/storage adapter
 assets/data.js         Local-first jobs and inspections service
 assets/db.js           Fresh IndexedDB v2 cache/drafts

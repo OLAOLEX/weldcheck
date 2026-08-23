@@ -1,3 +1,4 @@
+var crypto = require("crypto");
 var CONDITION_CODES = ["visible_porosity", "undercut", "excessive_spatter", "irregular_bead"];
 var RESULT_SCHEMA = {
   type: "object", additionalProperties: false,
@@ -5,16 +6,16 @@ var RESULT_SCHEMA = {
   properties: {
     status: { type: "string", enum: ["acceptable", "visible_issues", "retake"] },
     confidence_level: { type: "string", enum: ["low", "medium", "high"] },
-    confidence_reason: { type: "string" },
+    confidence_reason: { type: "string", description: "One plain sentence explaining how image clarity and visible evidence affect confidence." },
     image_quality_status: { type: "string", enum: ["acceptable", "poor"] },
     image_quality_issues: { type: "array", items: { type: "string" } },
-    summary: { type: "string" },
+    summary: { type: "string", description: "One or two plain sentences stating what the photograph shows. Do not infer skill, technique, settings, strength, penetration, safety, or code compliance." },
     conditions: { type: "array", items: { type: "string", enum: CONDITION_CODES } },
-    observations: { type: "array", items: { type: "string" } },
-    assessment_reason: { type: "string" },
-    possible_causes: { type: "array", items: { type: "string" } },
-    recommended_actions: { type: "array", items: { type: "string" } },
-    limitations: { type: "array", items: { type: "string" } }
+    observations: { type: "array", minItems: 1, maxItems: 6, items: { type: "string", description: "A concrete, location-aware visible observation without explaining why it happened." } },
+    assessment_reason: { type: "string", description: "Connect only the listed observations to the chosen status and allowed conditions." },
+    possible_causes: { type: "array", maxItems: 5, items: { type: "string", description: "A cautious possibility using may, might, or could; never a confirmed cause." } },
+    recommended_actions: { type: "array", minItems: 1, maxItems: 6, items: { type: "string", description: "A short, practical next step. Recommend qualified review when the consequence is safety-critical." } },
+    limitations: { type: "array", minItems: 2, maxItems: 4, items: { type: "string" } }
   }
 };
 
@@ -23,9 +24,12 @@ var INSTRUCTIONS = [
   "First decide whether the photograph is usable. If it is not clear, set status to retake, image_quality_status to poor, conditions to an empty array, and give specific retake actions.",
   "For a usable image, return status acceptable only when none of the allowed visible conditions is evident. Otherwise return visible_issues and every condition that is visibly supported.",
   "Allowed conditions: visible_porosity (visible rounded pits or holes), undercut (a visible groove along a weld toe), excessive_spatter (many scattered metal droplets), irregular_bead (clearly inconsistent bead shape or width).",
-  "Describe only what is visible. Possible causes must use cautious language such as may, might, or could. Never claim a confirmed process cause from the photograph.",
-  "Use simple language. Do not claim internal-defect detection, penetration, mechanical strength, safety certification, pass/fail against a welding code, or replacement of a qualified inspector.",
-  "Always include the limitations that only visible surface appearance is assessed and that internal condition or strength needs suitable engineering tests."
+  "Every observation must name a concrete visible feature and, when possible, where it appears. Do not praise or criticise the welder, skill, technique, settings, preparation, or workmanship from appearance alone.",
+  "Possible causes are optional. When used, each must contain may, might, or could and must be presented as something to check, never as a fact. For acceptable status, return no possible causes.",
+  "Recommended actions must be practical and proportionate: retake guidance for retake, review or correct the visible area for visible issues, and save or confirm the record for acceptable appearance.",
+  "Use short sentences and familiar words. Explain technical terms using visible shapes, such as a groove at the weld edge or rounded pits.",
+  "Do not claim internal-defect detection, penetration, mechanical strength, safety certification, pass/fail against a welding code, or replacement of a qualified inspector.",
+  "Always state that only visible surface appearance is assessed and that internal condition or strength requires suitable tests and qualified review."
 ].join("\n");
 
 function json(res, status, body) { res.status(status).json(body); }
@@ -75,6 +79,13 @@ function normalizeResult(result) {
     result[key] = Array.isArray(result[key]) ? result[key].map(function (value) { return String(value).slice(0, 260); }).slice(0, arrays[key]) : [];
   });
   result.conditions = Array.from(new Set(result.conditions));
+  if (result.status === "acceptable") result.possible_causes = [];
+  if (result.status === "retake") { result.conditions = []; result.image_quality_status = "poor"; }
+  var requiredLimits = [
+    "This result covers only the visible surface shown in this photograph.",
+    "Internal condition, penetration and strength require suitable tests and qualified review."
+  ];
+  result.limitations = result.limitations.filter(function (item) { return requiredLimits.indexOf(item) < 0; }).slice(0, 2).concat(requiredLimits);
   return result;
 }
 
@@ -93,7 +104,7 @@ module.exports = async function handler(req, res) {
     var usage = await claimLimit(token, !!user.is_anonymous);
     if (!usage.allowed) return json(res, 429, { error: "Daily AI inspection limit reached.", limit: usage.limit });
     var job = req.body.job || {};
-    var context = ["Inspect this completed SMAW mild-steel weld photograph.", "Recorded job details (context only; do not invent visible evidence from them):", "Joint: " + String(job.jointType || "Not supplied"), "Plate thickness: " + String(job.plateThickness || "Not supplied") + " mm", "Electrode: " + String(job.electrodeClassification || "Not supplied") + " " + String(job.electrodeSize || "") + " mm", "Position: " + String(job.weldingPosition || "Not supplied"), "Current: " + String(job.currentAmp || "Not supplied") + " A"].join("\n");
+    var context = ["Inspect this completed SMAW mild-steel weld photograph.", "Recorded job details are context only. Do not use them as visible evidence and do not judge whether a setting was correct:", "Joint: " + String(job.jointType || "Not supplied"), "Plate thickness: " + String(job.plateThickness || "Not supplied") + " mm", "Electrode: " + String(job.electrodeClassification || "Not supplied") + " " + String(job.electrodeSize || "") + " mm", "Position: " + String(job.weldingPosition || "Not supplied"), "Current: " + String(job.currentAmp || "Not supplied") + " A"].join("\n");
     var started = Date.now();
     var response = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
@@ -103,8 +114,9 @@ module.exports = async function handler(req, res) {
         instructions: INSTRUCTIONS,
         input: [{ role: "user", content: [{ type: "input_text", text: context }, { type: "input_image", image_url: image, detail: "high" }] }],
         text: { format: { type: "json_schema", name: "weld_inspection", strict: true, schema: RESULT_SCHEMA } },
-        max_output_tokens: 1200,
+        max_output_tokens: 1500,
         temperature: 0.2,
+        safety_identifier: crypto.createHash("sha256").update(String(user.id)).digest("hex"),
         store: false
       })
     });
