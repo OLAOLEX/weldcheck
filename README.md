@@ -2,6 +2,8 @@
 
 Cloud-backed SMAW job records, pre-welding checks, photograph-quality screening, visible weld-surface assessment, inspection history, reports, and evaluation exports for mild-steel samples.
 
+Public website: `https://weldcheck.cc`
+
 ## Current workflow
 
 1. Continue as a secure guest or link the guest account to Google.
@@ -34,7 +36,8 @@ The upgraded app uses `weldcheck-db-v2`. The original `weldcheck-db` is not open
 3. In Authentication settings, enable **Anonymous Sign-Ins**.
 4. Enable **Manual Identity Linking** so a guest can link Google without changing user ID.
 5. Enable Google as an OAuth provider and configure its client ID/secret.
-6. Add the production origin and local development origin to the allowed redirect URLs.
+6. Set the Supabase Site URL to `https://weldcheck.cc`.
+7. Add `https://weldcheck.cc/**`, the Vercel preview URL pattern, and the local development origin to the allowed redirect URLs.
 
 The SQL creates:
 
