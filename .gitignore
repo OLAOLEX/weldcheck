@@ -1,1 +1,10 @@
 .vercel
+.DS_Store
+node_modules/
+coverage/
+*.log
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example

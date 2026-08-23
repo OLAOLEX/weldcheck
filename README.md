@@ -1,8 +1,13 @@
 # WeldCheck
 
+[![MIT License](https://img.shields.io/badge/license-MIT-orange.svg)](LICENSE)
+[![Validate](https://github.com/OLAOLEX/weldcheck/actions/workflows/validate.yml/badge.svg)](https://github.com/OLAOLEX/weldcheck/actions/workflows/validate.yml)
+
 Cloud-backed SMAW job records, pre-welding checks, photograph-quality screening, visible weld-surface assessment, inspection history, reports, and evaluation exports for mild-steel samples.
 
-Public website: `https://weldcheck.cc`
+Website: [weldcheck.cc](https://weldcheck.cc)
+
+WeldCheck is an educational, visible-surface inspection and record-keeping project built with plain HTML, CSS and JavaScript. It is self-hostable and uses Supabase for private accounts/data and a server-side OpenAI endpoint for structured photograph assessment.
 
 ## Current workflow
 
@@ -28,6 +33,8 @@ python3 dev-server.py
 Open `http://localhost:4173`. Local drafts work without configuration. Cloud synchronization and AI inspection require the Vercel API routes or `vercel dev` with environment variables.
 
 The upgraded app uses `weldcheck-db-v2`. The original `weldcheck-db` is not opened, migrated, or deleted.
+
+For a full local cloud environment, copy `.env.example` to an ignored environment file and provide your own service configuration through `vercel dev`. Never commit real credentials.
 
 ## Supabase setup
 
@@ -63,6 +70,8 @@ ADMIN_EMAILS                 comma-separated Google emails allowed to open /admi
 Without `AI_DAILY_LIMIT`, the endpoint permits 5 AI checks per day for anonymous guests and 20 for Google-linked users. When the override is present, that value applies to both.
 
 `SUPABASE_PUBLISHABLE_KEY` is returned to the browser by `/api/config`. Never use a Supabase secret/service-role key in that variable or browser code.
+
+No WeldCheck production secret, user record or photograph is included in this repository. Forks must create and secure their own Supabase, OpenAI, Google OAuth and hosting configuration.
 
 ### Admin setup
 
@@ -113,3 +122,19 @@ response_time_ms
 ```
 
 Allowed visible-condition codes are `visible_porosity`, `undercut`, `excessive_spatter`, and `irregular_bead`. One inspection may contain several codes. Every recheck creates a new inspection record.
+
+## Contributing
+
+Focused issues and pull requests are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) before starting. It includes the local checks and the privacy, accessibility and weld-safety boundaries that contributions must preserve.
+
+Use the provided bug and feature forms. Do not post real inspection photographs, user data, API keys or security vulnerabilities in a public issue.
+
+## Security
+
+Report vulnerabilities privately through the repository Security tab as described in [SECURITY.md](SECURITY.md). GitHub secret scanning runs automatically for public repositories, but it is still each contributor's responsibility to keep credentials out of commits, issues and pull requests.
+
+## License
+
+WeldCheck is available under the [MIT License](LICENSE). The software is provided without warranty and does not replace qualified inspection or engineering testing.
+
+Before changing repository visibility, work through the [open-source release checklist](docs/OPEN_SOURCE_RELEASE.md).

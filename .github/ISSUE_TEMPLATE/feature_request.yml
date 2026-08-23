@@ -1,0 +1,32 @@
+name: Feature request
+description: Propose a focused improvement to WeldCheck
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: User need
+      description: What problem would this solve and who experiences it?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: Describe the smallest useful version.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope check
+      options:
+        - label: The proposal does not claim weld certification, structural strength or internal-defect detection from a photograph.
+          required: true
+        - label: The proposal can preserve user privacy and server-side secrets.
+          required: true

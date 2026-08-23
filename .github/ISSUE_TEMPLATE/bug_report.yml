@@ -1,0 +1,55 @@
+name: Bug report
+description: Report a reproducible problem in WeldCheck
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: "Do not include API keys, private weld photographs, personal information or security vulnerabilities. Report vulnerabilities privately through the Security tab."
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: Explain what you expected and what happened instead.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Sign in and account
+        - Job details
+        - Checklist
+        - Photo quality
+        - AI inspection
+        - Result and report
+        - History and downloads
+        - Admin
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: "1. Open...\n2. Choose...\n3. See..."
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and device
+      placeholder: "Chrome 128 on Android, Safari on iPhone, etc."
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Safe screenshots or console errors
+      description: Remove names, IDs, photographs, tokens and other private information first.
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: Confirmation
+      options:
+        - label: I removed secrets and personal or inspection data from this report.
+          required: true
