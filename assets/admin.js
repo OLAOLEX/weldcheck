@@ -2,7 +2,7 @@
   "use strict";
   var overview = null;
   function fmt(value) { return value ? Wc.fmtDate(value, true) : "—"; }
-  function showGate(title, text, google, home) { Wc.$("gate").hidden = false; Wc.$("adminView").hidden = true; Wc.$("gateTitle").textContent = title; Wc.$("gateText").textContent = text; Wc.$("adminGoogle").hidden = !google; Wc.$("homeLink").hidden = !home; }
+  function showGate(title, text, google, home) { Wc.$("gate").hidden = false; Wc.$("adminView").hidden = true; Wc.$("gateLoader").hidden = true; Wc.$("gateTitle").textContent = title; Wc.$("gateText").textContent = text; Wc.$("gateText").hidden = !text; Wc.$("adminGoogle").hidden = !google; Wc.$("homeLink").hidden = !home; }
   function statusLabel(value) { return { acceptable: "Acceptable", visible_issues: "Visible issues", retake: "Retake photo" }[value] || value; }
   function renderUsers() {
     var q = Wc.$("userSearch").value.toLowerCase().trim();
@@ -28,7 +28,7 @@
       render(body);
     }).catch(function (error) { showGate("Could not load admin", error.message, false, true); }).finally(function () { Wc.$("refreshBtn").disabled = false; });
   }
-  Wc.$("adminGoogle").onclick = function () { this.disabled = true; WcCloud.google("/admin").catch(function (error) { showGate("Google sign-in could not start", error.message, true, true); }); };
+  Wc.$("adminGoogle").onclick = function () { var button = this; button.disabled = true; button.classList.add("is-loading"); button.setAttribute("aria-busy", "true"); button.setAttribute("aria-label", "Opening Google"); WcCloud.google("/admin").catch(function (error) { button.disabled = false; button.classList.remove("is-loading"); button.removeAttribute("aria-busy"); button.removeAttribute("aria-label"); showGate("Google sign-in could not start", error.message, true, true); }); };
   Wc.$("refreshBtn").onclick = load; Wc.$("userSearch").addEventListener("input", renderUsers);
   WcCloud.init().then(function (state) { if (!state.configured) return showGate("Cloud access is unavailable", "WeldCheck cannot check admin access right now.", false, true); return WcCloud.currentUser().then(function (user) { if (!user || user.is_anonymous) showGate("Google sign-in required", "Admin access uses an allowed Google account. Guest sessions cannot open this page.", true, true); else load(); }); });
 })();

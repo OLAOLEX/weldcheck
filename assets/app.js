@@ -106,7 +106,7 @@
     if (!page || !page.hidden || !main || document.querySelector(".wc-page-loading")) return;
     var loader = document.createElement("div"); loader.className = page.classList.contains("sel-wrap") ? "sel-wrap wc-page-loading" : "sel-narrow wc-page-loading";
     loader.setAttribute("role", "status"); loader.setAttribute("aria-live", "polite");
-    loader.innerHTML = '<span class="wc-loader" aria-hidden="true"></span><div><b>Loading your workspace</b><span>Retrieving the latest private record…</span></div>';
+    loader.innerHTML = '<span class="wc-loader" aria-hidden="true"></span><span class="wc-sr-only">Loading</span>';
     main.insertBefore(loader, main.firstChild);
     var observer = new MutationObserver(function () {
       var missing = document.getElementById("missing");

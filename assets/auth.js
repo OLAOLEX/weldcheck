@@ -24,9 +24,12 @@
   function startGoogle(button, note) {
     button.classList.add("is-loading");
     button.disabled = true;
-    if (note) note.textContent = "Opening Google securely…";
+    button.setAttribute("aria-busy", "true");
+    button.setAttribute("aria-label", "Opening Google");
+    if (note) note.textContent = "";
     WcCloud.google().catch(function (e) {
       button.classList.remove("is-loading"); button.disabled = false;
+      button.removeAttribute("aria-busy"); button.removeAttribute("aria-label");
       if (note) note.textContent = e.message || "Google sign-in could not start.";
       else Wc.toast(e.message || "Google sign-in could not start.");
     });
@@ -49,10 +52,10 @@
     modal.className = "sel-modal wc-account-modal"; modal.id = "accountModal"; modal.hidden = true;
     modal.setAttribute("role", "dialog"); modal.setAttribute("aria-modal", "true"); modal.setAttribute("aria-labelledby", "accountTitle");
     var actions = state.isGuest ?
-      '<button class="sel-btn sel-btn--google sel-btn--block" id="accountGoogle">' + googleMark() + '<span>Continue with Google</span></button><p class="wc-auth-help">New here? Google creates your account. Returning user? It signs you back in. Your guest records stay with you.</p>' :
+      '<button class="sel-btn sel-btn--google sel-btn--block" id="accountGoogle">' + googleMark() + '<span>Continue with Google</span></button><p class="wc-auth-help">Google signs you in and keeps your guest records.</p>' :
       '<button class="sel-btn sel-btn--ghost sel-btn--block" id="accountSignOut">' + icon("i-log-out") + '<span>Sign out on this device</span></button>';
     if (!state.configured) actions = '<div class="sel-note sel-note--warn">' + icon("i-alert") + '<span>Cloud access is temporarily unavailable. You can continue with local drafts.</span></div>';
-    modal.innerHTML = '<div class="sel-modal__card wc-account-card"><button class="wc-modal-close" id="accountClose" type="button" aria-label="Close account panel">' + icon("i-close") + '</button><span class="sel-modal__ic">' + icon(state.isGuest ? "i-user" : "i-cloud") + '</span><p class="wc-overline">Account and sync</p><h2 id="accountTitle">' + Wc.esc(copy.title) + '</h2><p>' + Wc.esc(copy.sub) + '</p><div class="wc-sync-status"><span class="wc-account-dot' + (state.configured ? " is-online" : "") + '"></span><div><b>' + (state.configured ? "Cloud connected" : "Local only") + '</b><span>' + (state.configured ? "Private records protected by your account" : "Cloud records cannot sync right now") + '</span></div></div>' + actions + '<p class="wc-tiny" id="accountNote" aria-live="polite"></p></div>';
+    modal.innerHTML = '<div class="sel-modal__card wc-account-card"><button class="wc-modal-close" id="accountClose" type="button" aria-label="Close account panel">' + icon("i-close") + '</button><span class="sel-modal__ic">' + icon(state.isGuest ? "i-user" : "i-cloud") + '</span><p class="wc-overline">Account</p><h2 id="accountTitle">' + Wc.esc(copy.title) + '</h2><p>' + Wc.esc(copy.sub) + '</p><div class="wc-sync-status"><span class="wc-account-dot' + (state.configured ? " is-online" : "") + '"></span><div><b>' + (state.configured ? "Cloud connected" : "Local only") + '</b><span>' + (state.configured ? "Private to your account" : "Not syncing") + '</span></div></div>' + actions + '<p class="wc-tiny" id="accountNote" aria-live="polite"></p></div>';
     document.body.appendChild(modal);
     btn.addEventListener("click", function () { openPanel(modal); });
     modal.querySelector("#accountClose").onclick = function () { closePanel(modal, btn); };
@@ -61,7 +64,7 @@
     var google = modal.querySelector("#accountGoogle");
     if (google) google.onclick = function () { startGoogle(google, modal.querySelector("#accountNote")); };
     var signOut = modal.querySelector("#accountSignOut");
-    if (signOut) signOut.onclick = function () { signOut.classList.add("is-loading"); WcCloud.signOut().then(function () { location.reload(); }); };
+    if (signOut) signOut.onclick = function () { signOut.classList.add("is-loading"); signOut.setAttribute("aria-busy", "true"); signOut.setAttribute("aria-label", "Signing out"); WcCloud.signOut().then(function () { location.reload(); }); };
     window.WcAuth = { open: function () { openPanel(modal); }, google: function (button, note) { startGoogle(button, note); }, state: state };
   }
   function buildMobile(header, nav) {
@@ -84,12 +87,23 @@
     if (!nav || !header || document.getElementById("accountBtn")) return;
     WcData.authState().then(function (state) {
       authState = state; buildAccount(nav, state); buildMobile(header, nav);
-      if (!state.configured) setTimeout(function () {
+      setTimeout(function () {
         var text = document.getElementById("accessText"), status = document.getElementById("accessState"), action = document.querySelector("#heroAccountBtn span:last-child");
-        if (text) text.textContent = "You can continue with drafts on this device while cloud access is unavailable.";
-        if (status) status.textContent = "Local mode";
-        if (action) action.textContent = "View local access status";
-      }, 0);
+        if (!text && !status && !action) return;
+        if (!state.configured) {
+          if (text) text.textContent = "Drafts stay on this device.";
+          if (status) status.textContent = "Local mode";
+          if (action) action.textContent = "Access status";
+        } else if (state.isGuest) {
+          if (text) text.textContent = "Guest mode. Connect Google anytime.";
+          if (status) status.textContent = "Guest mode";
+          if (action) action.textContent = "Continue with Google";
+        } else {
+          if (text) text.textContent = "Synced with Google.";
+          if (status) status.textContent = "Synced";
+          if (action) action.textContent = "Account";
+        }
+      }, 100);
       document.documentElement.classList.add("wc-auth-ready");
     }).catch(function () { document.documentElement.classList.add("wc-auth-ready"); });
   }
