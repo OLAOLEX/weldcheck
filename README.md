@@ -1,88 +1,95 @@
 # WeldCheck
 
-Web-based pre-welding checklist and weld appearance checking system for mild steel samples.
-Final year project by Abdulsommod Olaoluwa Olaniyi (2021/1/82532EM), Department of Mechanical
-Engineering, Federal University of Technology, Minna. Supervisor: Engr. Dr. A. A. Abdullahi.
+Cloud-backed SMAW job records, pre-welding checks, photograph-quality screening, visible weld-surface assessment, inspection history, reports, and evaluation exports for mild-steel samples.
 
-## What it does
+## Current workflow
 
-- **Job input**: records sample number, material, electrode size, date, and a short note.
-- **Pre-welding checklist**: the nine checks from the project proposal (Appendix A), saved per job as Done or Pending.
-- **Image upload**: accepts a smartphone photo of the finished weld, with capture guidance and one-tap sample photos for quick testing.
-- **Appearance checking**: groups the photo into one of the four categories from the proposal (good weld appearance, visible holes and rough bead, excessive spatter and uneven bead, unclear image), with a short plain-language reason and the response time.
-- **Job history**: every record kept and searchable, with smart resume (a job opens at its next incomplete step).
+1. Continue as a secure guest or link the guest account to Google.
+2. Record the mild-steel joint, plate, electrode, welding position, and current.
+3. Complete all nine SMAW preparation checks.
+4. Upload a photograph; brightness, contrast, sharpness, resolution, and framing suitability are checked locally.
+5. A suitable photograph is sent to the protected AI endpoint for a structured visible-surface assessment.
+6. Review all visible conditions, observations, possible contributing factors, actions, and limitations.
+7. Confirm/correct the result, optionally add a supervised reference assessment, and print the report.
+8. Use the dashboard or export CSV/JSON data.
 
-## How the appearance check works
+WeldCheck assesses visible surface appearance only. It does not determine internal weld condition, penetration, mechanical strength, or welding-code compliance.
 
-Two engines, same result shape:
+## Local development
 
-1. **AI image service** (used when deployed): the photo is sent to `/api/check-weld`, a small
-   Vercel function that asks an image recognition service (OpenAI) to group the photo into one
-   of the four categories using careful prompting. No model training or fine-tuning is needed,
-   so it works on any weld photo out of the box.
-2. **Built-in basic analyzer** (fallback, works offline): simple measurements computed in the
-   browser (brightness, contrast, sharpness, surface texture, dark spots) mapped to the same
-   four categories. Used automatically when the AI service is not configured or unavailable.
-
-The result page always says which engine produced the result.
-
-## How it is built
-
-- Plain HTML, CSS, and JavaScript. No build step, no framework, no login.
-- All records (including weld photos) are stored in the browser with IndexedDB. The photo only
-  leaves the device for the appearance check itself.
-
-## Structure
-
-```
-index.html        Home: welcome popup, stats, how it works, categories, recent jobs
-new-job.html      Step 1: job input form
-checklist.html    Step 2: pre-weld checklist with progress
-upload.html       Step 3: weld photo upload, sample gallery, appearance check
-result.html       Appearance result, measurements, job record
-history.html      Job history with search
-api/
-  check-weld.js   Vercel function: AI appearance check
-assets/
-  weldcheck.css   Design tokens and components
-  sprite.js       SVG icon sprite
-  app.js          Shared helpers, checklist items, categories
-  db.js           IndexedDB job store
-  classifier.js   Built-in basic analyzer (fallback engine)
-  templates.js    Sample weld photo generator
-  fx.js           Entrance and progress motion helpers
+```bash
+python3 dev-server.py
 ```
 
-## Logo
+Open `http://localhost:4173`. Local drafts work without configuration. Cloud synchronization and AI inspection require the Vercel API routes or `vercel dev` with environment variables.
 
-The mark lives at `assets/logo.svg` (used in the header and welcome popup) with a copy at
-`favicon.svg` (browser tab icon). To swap in a generated logo, replace both files with square
-artwork of the same names; nothing else needs to change. A prompt that matches the app style:
+The upgraded app uses `weldcheck-db-v2`. The original `weldcheck-db` is not opened, migrated, or deleted.
 
-> Minimal flat vector app icon for "WeldCheck", a welding checklist web app. A dark navy
-> (#16233A) rounded square tile. Inside: a stylised weld bead of overlapping light cream
-> ripples along the bottom, a welding electrode entering from the top right, and a bright
-> orange (#EA580C) four-point spark where they meet. Clean geometric shapes, no text, no
-> gradients, no shadows, crisp edges, centred composition, plenty of padding.
+## Supabase setup
 
-## Run locally
+1. Open the selected Supabase project.
+2. Run [`supabase/schema.sql`](supabase/schema.sql) in the SQL editor.
+3. In Authentication settings, enable **Anonymous Sign-Ins**.
+4. Enable **Manual Identity Linking** so a guest can link Google without changing user ID.
+5. Enable Google as an OAuth provider and configure its client ID/secret.
+6. Add the production origin and local development origin to the allowed redirect URLs.
 
+The SQL creates:
+
+- `jobs`, `inspections`, and private per-user RLS policies;
+- a private `weld-images` bucket;
+- an atomic `claim_ai_check` function and private usage table;
+- indexes used by history and dashboard queries.
+
+## Vercel environment variables
+
+Configure these in the Vercel project. No project URL or key is hardcoded in the repository.
+
+```text
+SUPABASE_URL
+SUPABASE_PUBLISHABLE_KEY
+OPENAI_API_KEY
+OPENAI_MODEL                 optional; defaults to gpt-4o-mini
+AI_DAILY_LIMIT               optional shared override
 ```
-python dev-server.py
+
+Without `AI_DAILY_LIMIT`, the endpoint permits 5 AI checks per day for anonymous guests and 20 for Google-linked users. When the override is present, that value applies to both.
+
+`SUPABASE_PUBLISHABLE_KEY` is returned to the browser by `/api/config`. Never use a Supabase secret/service-role key in that variable or browser code.
+
+## Main structure
+
+```text
+index.html             Home, auth entry, totals, recent records
+new-job.html           SMAW job fields
+checklist.html         Nine preparation checks
+upload.html            Photograph quality gate and inspection request
+result.html            Full result, confirmation, reference, report, timeline
+history.html           Dashboard, filters, CSV and JSON exports
+api/config.js          Public browser configuration
+api/check-weld.js      Authenticated, rate-limited structured AI inspection
+assets/cloud.js        Supabase auth/storage adapter
+assets/data.js         Local-first jobs and inspections service
+assets/db.js           Fresh IndexedDB v2 cache/drafts
+supabase/schema.sql    Database, storage, RLS, and limit setup
 ```
 
-Then open http://localhost:4173. The small dev server mirrors the deployed clean URLs
-(/new-job, /history). Locally the AI endpoint is not running, so checks use the built-in
-basic analyzer. To test the AI path locally, use `vercel dev` with the env var set.
+## Inspection result model
 
-## Deploy to Vercel
+The AI endpoint uses image input and a strict JSON Schema. It returns:
 
-1. Push this folder to a GitHub repository and import it in Vercel. Framework preset **Other**,
-   no build command, output directory left as the repository root.
-2. In Vercel, Settings > Environment Variables, add `OPENAI_API_KEY` with your OpenAI key.
-   Optional: `OPENAI_MODEL` to pick a different model (default `gpt-4o-mini`).
-3. Recommended: add `AI_CHECK_PIN` (for example a 6 digit code). Every AI check then needs
-   this PIN; the app asks the user once and remembers it on their device. This stops strangers
-   from spending your OpenAI credit. Change or remove it any time in the env settings (a
-   changed PIN takes effect on the next deploy; users are simply asked again).
-4. Redeploy. The AI check is live; without the key the app still works on the basic analyzer.
+```text
+status
+confidence_level / confidence_reason
+image_quality_status / image_quality_issues
+summary
+conditions[]
+observations[]
+assessment_reason
+possible_causes[]
+recommended_actions[]
+limitations[]
+response_time_ms
+```
+
+Allowed visible-condition codes are `visible_porosity`, `undercut`, `excessive_spatter`, and `irregular_bead`. One inspection may contain several codes. Every recheck creates a new inspection record.

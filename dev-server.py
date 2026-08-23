@@ -1,5 +1,5 @@
 # Local dev server with the same clean-URL behaviour as Vercel (cleanUrls: true):
-# /new-job serves new-job.html, / serves index.html. Run: python dev-server.py [port]
+# /new-job serves new-job.html, / serves index.html. Run: python3 dev-server.py [port]
 import os
 import sys
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler

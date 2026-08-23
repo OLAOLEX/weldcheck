@@ -1,153 +1,21 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Appearance result · WeldCheck</title>
-<link rel="icon" href="favicon.svg" type="image/svg+xml"/>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="assets/weldcheck.css"/>
-</head>
-<body class="sel-body" data-page="history">
-
-<header class="sel-header">
-  <div class="sel-wrap sel-header__bar">
-    <a class="sel-logo" href="/" aria-label="WeldCheck home">
-      <span class="sel-logo__mark"><img src="assets/logo.svg" alt="" width="36" height="36"/></span>
-      <span class="sel-logo__text"><span class="sel-logo__brand">WeldCheck</span><span class="sel-logo__sub">Pre-weld checklist</span></span>
-    </a>
-    <nav class="wc-topnav" aria-label="Main">
-      <a href="/new-job" data-nav="new"><svg class="ic" aria-hidden="true"><use href="#i-plus"></use></svg><span class="wc-navlabel">New job</span></a>
-      <a href="/history" data-nav="history"><svg class="ic" aria-hidden="true"><use href="#i-history"></use></svg><span class="wc-navlabel">History</span></a>
-      <button class="sel-theme" id="themeBtn" type="button" aria-label="Switch theme"><svg class="ic" aria-hidden="true"><use href="#i-moon"></use></svg></button>
-    </nav>
-  </div>
-</header>
-
-<main class="sel-main sel-section">
-  <div class="sel-narrow" id="page" hidden>
-
-    <div class="sel-card wc-result-hero">
-      <div class="wc-result-hero__ic" id="heroIc"><svg class="ic" aria-hidden="true"><use id="heroUse" href="#i-check-circle"></use></svg></div>
-      <span class="sel-state-pill" id="catPill"></span>
-      <h2 id="catLabel" style="margin-top:14px"></h2>
-      <p id="catMeaning" style="margin-bottom:6px"></p>
-      <p id="catReason" style="font-size:14px;color:var(--sp-ink-3)"></p>
-      <span class="sel-badge" id="engineBadge"></span>
-    </div>
-
-    <div class="sel-card" style="margin-top:18px">
-      <h3>Checked photo</h3>
-      <div class="wc-preview" style="margin-top:10px"><img id="weldImg" alt="Checked weld sample photo"/></div>
-    </div>
-
-    <div class="sel-card" style="margin-top:18px">
-      <h3>Image measurements</h3>
-      <p style="font-size:13.5px">Simple measures computed from the photo, with the time the check took.</p>
-      <div class="wc-metrics" id="metrics"></div>
-      <div class="sel-note sel-note--info" style="margin-top:14px">
-        <svg class="ic" aria-hidden="true"><use href="#i-info"></use></svg>
-        <span id="engineNote">Use the result as a simple guide.</span>
-      </div>
-    </div>
-
-    <div class="sel-card" style="margin-top:18px">
-      <h3>Job record</h3>
-      <div class="sel-rows" id="jobRows"></div>
-    </div>
-
-    <div class="sel-hero__cta" style="margin-top:20px">
-      <a class="sel-btn sel-btn--ghost" id="recheckLink" href="#"><svg class="ic" aria-hidden="true"><use href="#i-camera"></use></svg> Check another photo</a>
-      <a class="sel-btn sel-btn--primary" href="/new-job"><svg class="ic" aria-hidden="true"><use href="#i-plus"></use></svg> Start a new job</a>
-      <a class="sel-btn sel-btn--ghost" href="/history"><svg class="ic" aria-hidden="true"><use href="#i-history"></use></svg> Job history</a>
-    </div>
-
-    <div style="margin-top:26px;text-align:center">
-      <button class="sel-btn sel-btn--ghost sel-btn--sm" id="deleteBtn" style="color:var(--sp-danger)"><svg class="ic" aria-hidden="true" style="width:15px;height:15px"><use href="#i-trash"></use></svg> Delete this job</button>
-    </div>
-  </div>
-
-  <div class="sel-narrow" id="missing" hidden>
-    <div class="sel-empty">
-      <h2>No result here yet</h2>
-      <p>This job has no appearance result, or the job was not found.</p>
-      <a class="sel-btn sel-btn--primary" href="/history">Open job history</a>
-    </div>
-  </div>
-</main>
-
-<footer class="sel-footer"><div class="sel-wrap"><span>WeldCheck · weldcheck.cc · Final year project, Department of Mechanical Engineering, Federal University of Technology, Minna · &copy; <span data-year>2026</span></span></div></footer>
-
-<script src="assets/sprite.js"></script>
-<script src="assets/db.js"></script>
-<script src="assets/app.js"></script>
-<script src="assets/fx.js"></script>
-<script>
-(function () {
-  var jobId = Wc.param("job");
-
-  function metricCell(k, v, s) {
-    return '<div class="wc-metric"><div class="wc-metric__k">' + k + '</div><div class="wc-metric__v">' + v + '</div><div class="wc-metric__s">' + s + "</div></div>";
-  }
-  function row(icon, title, sub) {
-    return '<div class="sel-row"><div class="sel-row__icon"><svg class="ic" aria-hidden="true"><use href="#' + icon + '"></use></svg></div>' +
-      '<div class="sel-row__body"><div class="sel-row__title">' + title + "</div>" + (sub ? '<div class="sel-row__sub">' + sub + "</div>" : "") + "</div></div>";
-  }
-
-  if (!jobId) { Wc.$("missing").hidden = false; return; }
-  WcDb.get(jobId).then(function (job) {
-    if (!job || !job.result) { Wc.$("missing").hidden = false; return; }
-    var res = job.result;
-    var cat = Wc.CATEGORIES[res.key] || Wc.CATEGORIES.unclear;
-
-    Wc.$("heroIc").classList.add(cat.hero);
-    Wc.$("heroUse").setAttribute("href", "#" + cat.icon);
-    var pill = Wc.$("catPill");
-    pill.classList.add(cat.pill.replace("sel-state-pill--", "sel-state-pill--"));
-    pill.className = "sel-state-pill " + cat.pill;
-    pill.textContent = "Confidence " + res.confidence + "% (indicative)";
-    Wc.$("catLabel").textContent = cat.label;
-    Wc.$("catMeaning").textContent = cat.meaning;
-    Wc.$("catReason").textContent = res.reason || "";
-    var isAi = res.source === "ai";
-    Wc.$("engineBadge").textContent = isAi ? "Checked with the AI image service" : "Checked with the built-in basic analyzer";
-    Wc.$("engineNote").textContent = isAi
-      ? "Checked by the AI image service. Use the result as a simple guide."
-      : "Checked by the built-in basic analyzer, used when the AI service is not available. Use the result as a simple guide.";
-
-    if (job.image) {
-      Wc.$("weldImg").src = URL.createObjectURL(job.image);
-    }
-
-    var m = res.metrics || {};
-    Wc.$("metrics").innerHTML =
-      metricCell("Brightness", m.brightness != null ? m.brightness : "?", "mean level, 0 to 255") +
-      metricCell("Contrast", m.contrast != null ? m.contrast : "?", "spread of tones") +
-      metricCell("Sharpness", m.sharpness != null ? m.sharpness : "?", "higher is crisper") +
-      metricCell("Edge activity", m.edgeActivity != null ? m.edgeActivity + "%" : "?", "busy surface texture") +
-      metricCell("Dark spots", m.darkSpots != null ? m.darkSpots + "%" : "?", "pit-like regions") +
-      metricCell("Response time", (res.ms != null ? res.ms : "?") + " ms", "on this device");
-
-    var checksDone = Wc.preDone(job);
-    Wc.$("jobRows").innerHTML =
-      row("i-file-text", "Sample " + Wc.esc(job.sampleNo) + (job.jobName ? " · " + Wc.esc(job.jobName) : ""), Wc.esc(job.material)) +
-      row("i-wrench", "Electrode: " + Wc.esc(job.electrode), job.operator ? "Welder: " + Wc.esc(job.operator) : "") +
-      row("i-clipboard", "Pre-weld checklist: " + checksDone + " of " + Wc.CHECKLIST.length + " done", checksDone >= Wc.CHECKLIST.length ? "All preparation checks confirmed" : "Some checks were still pending") +
-      row("i-calendar", "Job date: " + Wc.esc(Wc.fmtDate(job.date || job.createdAt)), "Checked " + Wc.esc(Wc.fmtDate(res.checkedAt))) +
-      (job.note ? row("i-info", "Note", Wc.esc(job.note)) : "");
-
-    Wc.$("recheckLink").href = "/upload?job=" + job.id;
-    Wc.$("deleteBtn").addEventListener("click", function () {
-      if (!confirm("Delete this job and its photo from this device? This cannot be undone.")) return;
-      WcDb.remove(job.id).then(function () { location.href = "/history"; });
-    });
-
-    Wc.$("page").hidden = false;
-    WcFx.reveal(Wc.$("page"), { selector: ".sel-card", step: 70 });
-  }, function () { Wc.$("missing").hidden = false; });
-})();
-</script>
-</body>
-</html>
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Inspection result · WeldCheck</title><link rel="icon" href="favicon.svg"/><link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/><link rel="stylesheet" href="assets/weldcheck.css"/></head><body class="sel-body">
+<header class="sel-header no-print"><div class="sel-wrap sel-header__bar"><a class="sel-logo" href="/"><span class="sel-logo__mark"><img src="assets/logo.svg" alt=""/></span><span class="sel-logo__text"><span class="sel-logo__brand">WeldCheck</span><span class="sel-logo__sub">SMAW inspection</span></span></a><nav class="wc-topnav"><a href="/new-job"><svg class="ic"><use href="#i-plus"></use></svg><span class="wc-navlabel">New job</span></a><a href="/history"><svg class="ic"><use href="#i-history"></use></svg><span class="wc-navlabel">History</span></a><button class="sel-theme" id="themeBtn"><svg class="ic"><use href="#i-moon"></use></svg></button></nav></div></header>
+<main class="sel-main sel-section"><div class="sel-wrap wc-report" id="page" hidden><div class="wc-report-head"><div><span class="sel-steps">Inspection report</span><h1>WeldCheck result</h1><p id="reportNo"></p></div><img src="assets/logo.svg" alt="WeldCheck" class="wc-report-logo"/></div>
+<div class="sel-grid sel-grid--2 wc-result-layout"><div>
+  <section class="sel-card wc-result-hero"><div class="wc-result-hero__ic" id="heroIc"><svg class="ic"><use id="heroUse" href="#i-check-circle"></use></svg></div><span class="sel-state-pill" id="statusPill"></span><h2 id="statusLabel"></h2><p id="summary"></p><div class="wc-tags" id="conditions"></div><span class="sel-badge" id="confidence"></span></section>
+  <section class="sel-card wc-section-card"><h3>Checked photograph</h3><div class="wc-preview"><img id="weldImg" alt="Checked weld sample"/></div><div class="wc-metrics" id="metrics"></div></section>
+  <section class="sel-card wc-section-card"><h3>Visible observations</h3><ul class="wc-list" id="observations"></ul><h3>Why WeldCheck returned this result</h3><p id="reason"></p></section>
+  <section class="sel-card wc-section-card"><h3>Possible contributing factors</h3><ul class="wc-list" id="causes"></ul><h3>Recommended actions</h3><ol class="wc-list" id="actions"></ol></section>
+  <section class="sel-card wc-section-card"><h3>Inspection limitations</h3><ul class="wc-list" id="limitations"></ul></section>
+</div><div>
+  <section class="sel-card"><h3>Job details</h3><div class="sel-rows" id="jobRows"></div><h3 style="margin-top:18px">Pre-weld checklist</h3><div id="checkRows"></div></section>
+  <section class="sel-card wc-section-card no-print"><h3>Does the result match your observation?</h3><div class="wc-choice-row"><button class="sel-btn sel-btn--ghost sel-btn--sm" data-verdict="matches">Result matches</button><button class="sel-btn sel-btn--ghost sel-btn--sm" data-verdict="corrected">Correct conditions</button><button class="sel-btn sel-btn--ghost sel-btn--sm" data-verdict="not_sure">Not sure</button></div><div id="correctionBox" hidden><p>Select the visible conditions you observed. Leave all empty for acceptable appearance.</p><div class="wc-condition-grid" id="correctedChecks"></div></div><p class="wc-saved" id="verdictSaved"></p></section>
+  <section class="sel-card wc-section-card"><h3>Human observation</h3><p id="humanSummary">Not recorded.</p></section>
+  <section class="sel-card wc-section-card no-print"><h3>Optional supervised reference</h3><p>Select all conditions recorded during supervised review. Leave empty for acceptable appearance.</p><div class="wc-condition-grid" id="referenceChecks"></div><button class="sel-btn sel-btn--ghost sel-btn--sm" id="saveReference">Save reference assessment</button></section>
+  <section class="sel-card wc-section-card"><h3>Reference comparison</h3><p id="referenceSummary">No supervised reference has been recorded.</p></section>
+  <section class="sel-card wc-section-card"><h3>Inspection history</h3><div class="sel-rows" id="timeline"></div></section>
+</div></div>
+<div class="sel-hero__cta no-print"><button class="sel-btn sel-btn--primary" id="printBtn"><svg class="ic"><use href="#i-file-text"></use></svg> Print or save PDF</button><a class="sel-btn sel-btn--ghost" id="recheckLink"><svg class="ic"><use href="#i-camera"></use></svg> Recheck this job</a><a class="sel-btn sel-btn--ghost" href="/history">Job history</a><button class="sel-btn sel-btn--ghost" id="deleteBtn" style="color:var(--sp-danger)">Delete job</button></div></div><div class="sel-narrow" id="missing" hidden><div class="sel-empty"><h2>Inspection not found</h2><a href="/history" class="sel-btn sel-btn--primary">Open history</a></div></div></main>
+<footer class="sel-footer no-print"><div class="sel-wrap">WeldCheck · <span data-year></span></div></footer>
+<script src="assets/sprite.js"></script><script src="assets/db.js"></script><script src="assets/cloud.js"></script><script src="assets/data.js"></script><script src="assets/app.js"></script><script src="assets/auth.js"></script><script src="assets/fx.js"></script>
+<script>(function(){var jobId=Wc.param("job"),inspectionId=Wc.param("inspection"),job,inspection,history=[];function list(id,items){Wc.$(id).innerHTML=(items||[]).map(function(x){return"<li>"+Wc.esc(x)+"</li>";}).join("")||"<li>None recorded.</li>";}function tags(values){return(values||[]).map(function(k){var c=Wc.CONDITIONS[k];return'<span class="wc-tag wc-tag--'+(c?c.tone:'warn')+'">'+Wc.esc(c?c.label:k)+'</span>';}).join("")||'<span class="wc-tag wc-tag--good">No visible issue condition</span>';}function conditionInputs(id,selected){Wc.$(id).innerHTML=Object.keys(Wc.CONDITIONS).map(function(k){return'<label class="wc-condition"><input type="checkbox" value="'+k+'" '+((selected||[]).indexOf(k)>=0?'checked':'')+'/><span>'+Wc.esc(Wc.CONDITIONS[k].label)+'</span></label>';}).join("");}function selected(id){return Array.from(Wc.$(id).querySelectorAll("input:checked")).map(function(x){return x.value;});}function human(){var text="Not recorded.";if(inspection.humanVerdict==="matches")text="The user confirmed that the WeldCheck result matches their observation.";if(inspection.humanVerdict==="not_sure")text="The user was not sure whether the result matched.";if(inspection.humanVerdict==="corrected")text="User-corrected conditions: "+(Wc.conditionLabels(inspection.correctedConditions).join(", ")||"Acceptable appearance")+".";Wc.$("humanSummary").textContent=text;Wc.$("verdictSaved").textContent=inspection.humanVerdict?"Saved: "+text:"";}function reference(){if(!inspection.comparisonResult){Wc.$("referenceSummary").textContent="No supervised reference has been recorded.";return;}var labels=Wc.conditionLabels(inspection.referenceConditions).join(", ")||"Acceptable appearance",map={exact:"Exact match",partial:"Partial match",no_match:"No match"};Wc.$("referenceSummary").textContent="Reference: "+labels+". Comparison: "+map[inspection.comparisonResult]+".";}function row(title,sub){return'<div class="sel-row"><div class="sel-row__body"><div class="sel-row__title">'+Wc.esc(title)+'</div><div class="sel-row__sub">'+Wc.esc(sub||"")+'</div></div></div>';}function render(){var st=Wc.STATUSES[inspection.status]||Wc.STATUSES.retake;Wc.$("heroIc").className="wc-result-hero__ic wc-result-hero__ic--"+st.tone;Wc.$("heroUse").setAttribute("href","#"+st.icon);Wc.$("statusPill").className="sel-state-pill sel-state-pill--"+st.tone;Wc.$("statusPill").textContent=st.label;Wc.$("statusLabel").textContent=st.label;Wc.$("summary").textContent=inspection.summary;Wc.$("conditions").innerHTML=tags(inspection.conditions);Wc.$("confidence").textContent="Confidence: "+inspection.confidenceLevel+" · "+inspection.confidenceReason;list("observations",inspection.observations);list("causes",inspection.possibleCauses);list("actions",inspection.recommendedActions);list("limitations",inspection.limitations);Wc.$("reason").textContent=inspection.assessmentReason;Wc.$("reportNo").textContent="Report "+inspection.id.slice(0,8).toUpperCase()+" · "+Wc.fmtDate(inspection.createdAt,true);var m=inspection.metrics||{};Wc.$("metrics").innerHTML=['Brightness|'+(m.brightness==null?'—':m.brightness),'Contrast|'+(m.contrast==null?'—':m.contrast),'Sharpness|'+(m.sharpness==null?'—':m.sharpness),'Response|'+inspection.responseTimeMs+' ms'].map(function(x){var p=x.split('|');return'<div class="wc-metric"><div class="wc-metric__k">'+p[0]+'</div><div class="wc-metric__v">'+p[1]+'</div></div>';}).join('');Wc.$("jobRows").innerHTML=row("Sample "+job.sampleNo,job.jobName)+row(job.material,job.jointType+" · "+job.plateThickness+" mm")+row(job.electrodeClassification+" · "+job.electrodeSize+" mm",job.weldingPosition+" · "+job.currentAmp+" A")+row("Operator: "+(job.operator||"Not recorded"),Wc.fmtDate(job.date));Wc.$("checkRows").innerHTML=Wc.CHECKLIST.map(function(c){return'<div class="wc-report-check"><span>✓</span>'+Wc.esc(c.text)+'</div>';}).join('');conditionInputs("correctedChecks",inspection.correctedConditions);conditionInputs("referenceChecks",inspection.referenceConditions);human();reference();Wc.$("timeline").innerHTML=history.map(function(i,n){return'<a class="sel-row" href="/result?job='+job.id+'&inspection='+i.id+'"><div class="sel-row__body"><div class="sel-row__title">Inspection '+(history.length-n)+' · '+Wc.esc((Wc.STATUSES[i.status]||{}).label||i.status)+'</div><div class="sel-row__sub">'+Wc.esc(Wc.fmtDate(i.createdAt,true))+' · '+i.conditions.length+' condition(s)</div></div></a>';}).join('');Wc.$("recheckLink").href="/upload?job="+job.id;WcData.imageUrl(inspection).then(function(url){if(url)Wc.$("weldImg").src=url;});Wc.$("page").hidden=false;WcFx.reveal(Wc.$("page"),{selector:".sel-card",step:35});}document.querySelectorAll("[data-verdict]").forEach(function(btn){btn.onclick=function(){var verdict=this.dataset.verdict;if(verdict==="corrected"){Wc.$("correctionBox").hidden=false;Wc.$("correctionBox").scrollIntoView({behavior:"smooth",block:"center"});this.textContent="Save correction";this.onclick=function(){inspection.humanVerdict="corrected";inspection.correctedConditions=selected("correctedChecks");WcData.updateInspection(inspection).then(human);};return;}inspection.humanVerdict=verdict;inspection.correctedConditions=verdict==="matches"?inspection.conditions:[];WcData.updateInspection(inspection).then(human);};});Wc.$("saveReference").onclick=function(){inspection.referenceConditions=selected("referenceChecks");inspection.comparisonResult=Wc.compareConditions(inspection.conditions,inspection.referenceConditions);WcData.updateInspection(inspection).then(function(){reference();Wc.toast("Reference assessment saved.");});};Wc.$("printBtn").onclick=function(){window.print();};Wc.$("deleteBtn").onclick=function(){if(confirm("Delete this job and all of its inspections?"))WcData.removeJob(job.id).then(function(){location.href="/history";});};WcData.getJob(jobId).then(function(j){job=j;if(!j)throw new Error("missing");return WcData.inspectionsFor(jobId);}).then(function(list){history=list;inspection=inspectionId?list.find(function(i){return i.id===inspectionId;}):list[0];if(!inspection)throw new Error("missing");render();}).catch(function(){Wc.$("missing").hidden=false;});})();</script></body></html>

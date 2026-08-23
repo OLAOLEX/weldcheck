@@ -1,65 +1,53 @@
-/* db.js: IndexedDB job store for WeldCheck. window.WcDb. No login and no server: every job
- * record (details, checklist state, weld photo blob, appearance result) lives in the browser.
- * Promise-based, classic browser script. */
+/* Fresh v2 IndexedDB store. The legacy weldcheck-db is intentionally left untouched. */
 (function () {
   "use strict";
-  var DB_NAME = "weldcheck-db", DB_VER = 1, STORE = "jobs";
-  var dbPromise = null;
-
+  var NAME = "weldcheck-db-v2", VERSION = 1, promise;
   function open() {
-    if (dbPromise) return dbPromise;
-    dbPromise = new Promise(function (resolve, reject) {
-      var req = indexedDB.open(DB_NAME, DB_VER);
+    if (promise) return promise;
+    promise = new Promise(function (resolve, reject) {
+      var req = indexedDB.open(NAME, VERSION);
       req.onupgradeneeded = function () {
         var db = req.result;
-        if (!db.objectStoreNames.contains(STORE)) {
-          var store = db.createObjectStore(STORE, { keyPath: "id" });
-          store.createIndex("createdAt", "createdAt");
+        if (!db.objectStoreNames.contains("jobs")) {
+          var jobs = db.createObjectStore("jobs", { keyPath: "id" }); jobs.createIndex("createdAt", "createdAt");
+        }
+        if (!db.objectStoreNames.contains("inspections")) {
+          var inspections = db.createObjectStore("inspections", { keyPath: "id" }); inspections.createIndex("jobId", "jobId"); inspections.createIndex("createdAt", "createdAt");
         }
       };
       req.onsuccess = function () { resolve(req.result); };
       req.onerror = function () { reject(req.error); };
     });
-    return dbPromise;
+    return promise;
   }
-
-  function tx(mode, fn) {
+  function request(store, mode, fn) {
     return open().then(function (db) {
       return new Promise(function (resolve, reject) {
-        var t = db.transaction(STORE, mode);
-        var store = t.objectStore(STORE);
-        var out = fn(store);
-        t.oncomplete = function () { resolve(out && out.result !== undefined ? out.result : undefined); };
-        t.onerror = function () { reject(t.error); };
-        t.onabort = function () { reject(t.error); };
-      });
-    });
-  }
-
-  function put(job) { return tx("readwrite", function (s) { s.put(job); }).then(function () { return job; }); }
-  function get(id) {
-    return open().then(function (db) {
-      return new Promise(function (resolve, reject) {
-        var req = db.transaction(STORE).objectStore(STORE).get(id);
-        req.onsuccess = function () { resolve(req.result || null); };
+        var req = fn(db.transaction(store, mode).objectStore(store));
+        req.onsuccess = function () { resolve(req.result); };
         req.onerror = function () { reject(req.error); };
       });
     });
   }
-  function all() {
+  function put(store, value) { return request(store, "readwrite", function (s) { return s.put(value); }).then(function () { return value; }); }
+  function get(store, id) { return request(store, "readonly", function (s) { return s.get(id); }).then(function (v) { return v || null; }); }
+  function all(store) { return request(store, "readonly", function (s) { return s.getAll(); }).then(function (v) { return v || []; }); }
+  function remove(store, id) { return request(store, "readwrite", function (s) { return s.delete(id); }); }
+  function inspectionsFor(jobId) {
     return open().then(function (db) {
       return new Promise(function (resolve, reject) {
-        var req = db.transaction(STORE).objectStore(STORE).getAll();
-        req.onsuccess = function () {
-          var list = req.result || [];
-          list.sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
-          resolve(list);
-        };
+        var req = db.transaction("inspections").objectStore("inspections").index("jobId").getAll(jobId);
+        req.onsuccess = function () { resolve((req.result || []).sort(function (a, b) { return b.createdAt - a.createdAt; })); };
         req.onerror = function () { reject(req.error); };
       });
     });
   }
-  function remove(id) { return tx("readwrite", function (s) { s.delete(id); }); }
-
-  window.WcDb = { put: put, get: get, all: all, remove: remove };
+  window.WcLocal = {
+    putJob: function (v) { return put("jobs", v); }, getJob: function (id) { return get("jobs", id); },
+    allJobs: function () { return all("jobs").then(function (v) { return v.sort(function (a, b) { return b.createdAt - a.createdAt; }); }); },
+    removeJob: function (id) { return remove("jobs", id); },
+    putInspection: function (v) { return put("inspections", v); }, getInspection: function (id) { return get("inspections", id); },
+    allInspections: function () { return all("inspections"); }, inspectionsFor: inspectionsFor,
+    removeInspection: function (id) { return remove("inspections", id); }
+  };
 })();
