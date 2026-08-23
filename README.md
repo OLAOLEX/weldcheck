@@ -55,6 +55,8 @@ The SQL creates:
 - an atomic `claim_ai_check` function and private usage table;
 - indexes used by history and dashboard queries.
 
+For interface testing only, [`supabase/demo-exercise.sql`](supabase/demo-exercise.sql) adds a clearly labelled demonstration flat butt-joint exercise. Its E6013 current range is cited to a Lincoln Electric amperage table. It is not a WPS or substitute for the final supervisor-approved practical exercise.
+
 ## Vercel environment variables
 
 Configure these in the Vercel project. No project URL or key is hardcoded in the repository.
