@@ -36,7 +36,11 @@
       var path = redirectPath || "/";
       if (path.charAt(0) !== "/") path = "/" + path;
       var options = { redirectTo: location.origin + path };
-      return user && user.is_anonymous ? client.auth.linkIdentity({ provider: "google", options: options }) : client.auth.signInWithOAuth({ provider: "google", options: options });
+      var request = user && user.is_anonymous ? client.auth.linkIdentity({ provider: "google", options: options }) : client.auth.signInWithOAuth({ provider: "google", options: options });
+      return request.then(function (result) {
+        if (result.error) throw result.error;
+        return result;
+      });
     });
   }
   function token() { return ensureSession().then(function (s) { return s && s.access_token; }); }
