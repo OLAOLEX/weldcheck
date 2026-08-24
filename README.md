@@ -3,7 +3,7 @@
 [![MIT License](https://img.shields.io/badge/license-MIT-orange.svg)](LICENSE)
 [![Validate](https://github.com/OLAOLEX/weldcheck/actions/workflows/validate.yml/badge.svg)](https://github.com/OLAOLEX/weldcheck/actions/workflows/validate.yml)
 
-Cloud-backed SMAW work records with pre-welding setup checks, completed-weld review, guided practice, visible weld-surface assessment and printable reports.
+WeldCheck guides SMAW pre-welding preparation, records welding information, assesses visible weld quality from photographs and maintains clear inspection records for mild-steel work.
 
 Website: [weldcheck.cc](https://weldcheck.cc)
 
@@ -11,9 +11,9 @@ WeldCheck is a visible-surface inspection and record-keeping project built with 
 
 ## Current workflows
 
-- **Welding job:** record an applicable WPS, drawing, manufacturer or workshop reference; enter the actual setup; complete pre-welding checks; photograph; assess; confirm; report.
-- **Completed-weld check:** record known information for an existing weld, then go directly to photograph quality and visible-surface assessment without pretending a pre-weld approval occurred.
-- **Guided practice:** choose one of six sourced starter exercises, follow its steps, validate the actual setup and compare repeated attempts.
+- **Primary — Welding job:** record an applicable WPS, drawing, manufacturer or workshop reference; enter the actual setup; complete pre-welding checks; photograph; assess; confirm; report.
+- **Additional — Completed-weld check:** record known information for an existing weld, then go directly to photograph quality and visible-surface assessment without pretending a pre-weld approval occurred.
+- **Optional — Guided practice:** choose one of six sourced starter exercises, follow its steps, validate the actual setup and compare repeated attempts.
 
 All three workflows share private cloud records, the local photo-quality gate, the protected inspection endpoint, user confirmation, optional supervised reference comparison, history and printable reports.
 
@@ -38,12 +38,13 @@ For a full local cloud environment, copy `.env.example` to an ignored environmen
 1. Open the selected Supabase project.
 2. Run [`supabase/schema.sql`](supabase/schema.sql) in the SQL editor.
 3. Run [`supabase/learning-cycle.sql`](supabase/learning-cycle.sql).
-4. Optionally add organisation-approved exercise templates. WeldCheck also includes six sourced starter exercises for supervised beginner practice; these are not WPSs.
-5. In Authentication settings, enable **Anonymous Sign-Ins**.
-6. Enable **Manual Identity Linking** so a guest can link Google without changing user ID.
-7. Enable Google as an OAuth provider and configure its client ID/secret.
-8. Set the Supabase Site URL to `https://weldcheck.cc`.
-9. Add `https://weldcheck.cc/**`, the Vercel preview URL pattern, and the local development origin to the allowed redirect URLs.
+4. Run [`supabase/alignment.sql`](supabase/alignment.sql) to add assessment and reference provenance fields.
+5. Optionally add organisation-approved exercise templates. WeldCheck also includes six sourced starter exercises for supervised beginner practice; these are not WPSs.
+6. In Authentication settings, enable **Anonymous Sign-Ins**.
+7. Enable **Manual Identity Linking** so a guest can link Google without changing user ID.
+8. Enable Google as an OAuth provider and configure its client ID/secret.
+9. Set the Supabase Site URL to `https://weldcheck.cc`.
+10. Add `https://weldcheck.cc/**`, the Vercel preview URL pattern, and the local development origin to the allowed redirect URLs.
 
 The SQL creates:
 
@@ -64,6 +65,7 @@ SUPABASE_PUBLISHABLE_KEY
 OPENAI_API_KEY
 OPENAI_MODEL                 optional; defaults to gpt-4o-mini
 AI_DAILY_LIMIT               optional shared override
+APP_VERSION                  optional for non-Vercel deployments
 SUPABASE_SERVICE_ROLE_KEY    server only; required for /admin
 ADMIN_EMAILS                 comma-separated Google emails allowed to open /admin
 ```
@@ -83,6 +85,10 @@ ADMIN_EMAILS=owner@example.com
 ```
 
 The service-role key is used only inside `api/admin-overview.js`; it is never returned by `/api/config` or included in browser files. The first admin version is read-only and shows accounts, signups, recent activity, jobs, inspections and workflow progress. It does not collect physical location.
+
+## Project and evaluation scope
+
+Read the [approved product and research boundaries](docs/PROJECT_SCOPE.md) and the [controlled sample evaluation protocol](docs/EVALUATION_PROTOCOL.md) before changing the experimental workflow or interpreting saved results.
 
 ## Main structure
 
@@ -107,6 +113,9 @@ assets/exercises.js    Deterministic readiness, guidance and comparison rules
 assets/reference.js    Optional supervised condition-set comparison
 supabase/schema.sql    Database, storage, RLS, and limit setup
 supabase/learning-cycle.sql  Exercise and attempt migration
+supabase/alignment.sql Academic assessment/reference provenance migration
+docs/PROJECT_SCOPE.md Approved product and research boundaries
+docs/EVALUATION_PROTOCOL.md Controlled sample and evidence procedure
 ```
 
 ## Inspection result model
@@ -123,6 +132,7 @@ observations[]
 assessment_reason
 limitations[]
 response_time_ms
+model_name / schema_version / prompt_version / app_version
 ```
 
 Allowed visible-condition codes are `visible_porosity`, `undercut`, `excessive_spatter`, and `irregular_bead`. One photo review may contain several codes. The AI does not infer causes or machine-setting changes; deterministic exercise rules provide separate learning prompts. Every recheck belongs to a new attempt and preserves the earlier record.

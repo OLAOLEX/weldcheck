@@ -28,6 +28,8 @@ jobs:
         run: node tests/comparison.test.js
       - name: Test authentication onboarding rules
         run: node tests/auth.test.js
+      - name: Test project alignment rules
+        run: node tests/alignment.test.js
       - name: Check Python syntax
         run: python3 -m py_compile dev-server.py
       - name: Check required public files

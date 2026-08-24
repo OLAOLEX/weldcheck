@@ -67,19 +67,29 @@
       supervisorComment:r.supervisor_comment||"",reviewedAt:r.reviewed_at?time(r.reviewed_at):null,createdAt:time(r.created_at),updatedAt:time(r.updated_at) };
   }
   function inspectionRow(i, uid) {
+    var metrics=Object.assign({},i.metrics||{});
+    metrics.provenance={modelName:i.modelName||null,schemaVersion:i.schemaVersion||null,promptVersion:i.promptVersion||null,appVersion:i.appVersion||null};
+    metrics.reference={basis:i.referenceBasis||null,source:i.referenceSource||"",assessedAt:i.referenceAssessedAt||null,note:i.referenceNote||""};
     return { id:i.id,job_id:i.jobId,attempt_id:i.attemptId||null,user_id:uid,image_path:i.imagePath||null,status:i.status,confidence_level:i.confidenceLevel,
       confidence_reason:i.confidenceReason,image_quality_status:i.imageQualityStatus,image_quality_issues:i.imageQualityIssues||[],summary:i.summary,conditions:i.conditions||[],
       observations:i.observations||[],assessment_reason:i.assessmentReason,possible_causes:i.possibleCauses||[],recommended_actions:i.recommendedActions||[],limitations:i.limitations||[],
-      metrics_json:i.metrics||{},engine:i.engine||"ai",response_time_ms:i.responseTimeMs||0,human_verdict:i.humanVerdict||null,corrected_conditions:i.correctedConditions||[],
-      reference_conditions:i.referenceConditions||[],comparison_result:i.comparisonResult||null,created_at:iso(i.createdAt),updated_at:iso(i.updatedAt) };
+      metrics_json:metrics,engine:i.engine||"ai",model_name:i.modelName||null,schema_version:i.schemaVersion||null,prompt_version:i.promptVersion||null,app_version:i.appVersion||null,response_time_ms:i.responseTimeMs||0,human_verdict:i.humanVerdict||null,corrected_conditions:i.correctedConditions||[],
+      reference_conditions:i.referenceConditions||[],comparison_result:i.comparisonResult||null,reference_basis:i.referenceBasis||null,reference_source:i.referenceSource||null,reference_assessed_at:i.referenceAssessedAt||null,reference_note:i.referenceNote||null,created_at:iso(i.createdAt),updated_at:iso(i.updatedAt) };
   }
   function inspectionFrom(r) {
+    var metrics=r.metrics_json||{},provenance=metrics.provenance||{},reference=metrics.reference||{};
     return { id:r.id,ownerId:r.user_id,jobId:r.job_id,attemptId:r.attempt_id,imagePath:r.image_path,status:r.status,confidenceLevel:r.confidence_level,
       confidenceReason:r.confidence_reason,imageQualityStatus:r.image_quality_status,imageQualityIssues:r.image_quality_issues||[],summary:r.summary,conditions:r.conditions||[],
       observations:r.observations||[],assessmentReason:r.assessment_reason,possibleCauses:r.possible_causes||[],recommendedActions:r.recommended_actions||[],limitations:r.limitations||[],
-      metrics:r.metrics_json||{},engine:r.engine,responseTimeMs:r.response_time_ms,humanVerdict:r.human_verdict,correctedConditions:r.corrected_conditions||[],
-      referenceConditions:r.reference_conditions||[],comparisonResult:r.comparison_result,createdAt:time(r.created_at),updatedAt:time(r.updated_at) };
+      metrics:metrics,engine:r.engine,modelName:r.model_name||provenance.modelName||"Not recorded",schemaVersion:r.schema_version||provenance.schemaVersion||"Not recorded",promptVersion:r.prompt_version||provenance.promptVersion||"Not recorded",appVersion:r.app_version||provenance.appVersion||"Not recorded",responseTimeMs:r.response_time_ms,humanVerdict:r.human_verdict,correctedConditions:r.corrected_conditions||[],
+      referenceConditions:r.reference_conditions||[],comparisonResult:r.comparison_result,referenceBasis:r.reference_basis||reference.basis||null,referenceSource:r.reference_source||reference.source||"",referenceAssessedAt:r.reference_assessed_at||reference.assessedAt||null,referenceNote:r.reference_note||reference.note||"",createdAt:time(r.created_at),updatedAt:time(r.updated_at) };
   }
+  function traceCompatible(row) {
+    var copy=Object.assign({},row);
+    ["model_name","schema_version","prompt_version","app_version","reference_basis","reference_source","reference_assessed_at","reference_note"].forEach(function(key){delete copy[key];});
+    return copy;
+  }
+  function writeInspection(operation,row){return operation(row).then(function(r){if(r.error&&/column|schema cache/i.test(String(r.error.message||"")))return operation(traceCompatible(row));return r;});}
   function owned(list, uid, cloud) { return list.filter(function (x) { var o=x.ownerId||"local"; return o===uid||(cloud&&o==="local"); }); }
   function merge(a,b) { var m={}; a.concat(b).forEach(function(x){m[x.id]=x;}); return Object.keys(m).map(function(k){return m[k];}); }
   function enrich(jobs, attempts, inspections) {
@@ -108,8 +118,8 @@
       }).catch(function(){return {jobs:enrich(lj,la,li),attempts:la,inspections:li};});
     });
   }
-  function saveInspection(i,file){i.updatedAt=Date.now();i.image=file;return ready().then(function(s){i.ownerId=s.cloud?s.user.id:owner();if(!s.cloud)return WcLocal.putInspection(i);var ext=((file.type||"image/jpeg").split("/")[1]||"jpg").replace("jpeg","jpg"),path=s.user.id+"/"+i.jobId+"/"+(i.attemptId||"legacy")+"/"+i.id+"."+ext;return WcCloud.upload(path,file).then(function(r){if(r.error)throw r.error;i.imagePath=path;return WcCloud.query("inspections").insert(inspectionRow(i,s.user.id)).then(function(x){if(x.error)throw x.error;return WcLocal.putInspection(i);});});});}
-  function updateInspection(i){i.updatedAt=Date.now();return WcLocal.putInspection(i).then(ready).then(function(s){if(!s.cloud)return i;return WcCloud.query("inspections").update(inspectionRow(i,s.user.id)).eq("id",i.id).then(function(r){if(r.error)throw r.error;return i;});});}
+  function saveInspection(i,file){i.updatedAt=Date.now();i.image=file;return ready().then(function(s){i.ownerId=s.cloud?s.user.id:owner();if(!s.cloud)return WcLocal.putInspection(i);var ext=((file.type||"image/jpeg").split("/")[1]||"jpg").replace("jpeg","jpg"),path=s.user.id+"/"+i.jobId+"/"+(i.attemptId||"legacy")+"/"+i.id+"."+ext;return WcCloud.upload(path,file).then(function(r){if(r.error)throw r.error;i.imagePath=path;var row=inspectionRow(i,s.user.id);return writeInspection(function(value){return WcCloud.query("inspections").insert(value);},row).then(function(x){if(x.error)throw x.error;return WcLocal.putInspection(i);});});});}
+  function updateInspection(i){i.updatedAt=Date.now();return WcLocal.putInspection(i).then(ready).then(function(s){if(!s.cloud)return i;var row=inspectionRow(i,s.user.id);return writeInspection(function(value){return WcCloud.query("inspections").update(value).eq("id",i.id);},row).then(function(r){if(r.error)throw r.error;return i;});});}
   function getJob(id){return bundle().then(function(b){return b.jobs.find(function(x){return x.id===id;})||null;});}
   function allJobs(){return bundle().then(function(b){return b.jobs;});}
   function getAttempt(id){return bundle().then(function(b){return b.attempts.find(function(x){return x.id===id;})||null;});}

@@ -1,5 +1,6 @@
 var crypto = require("crypto");
 var CONDITION_CODES = ["visible_porosity", "undercut", "excessive_spatter", "irregular_bead"];
+var SCHEMA_VERSION = "weld-inspection-v1", PROMPT_VERSION = "visible-surface-v2";
 var RESULT_SCHEMA = {
   type: "object", additionalProperties: false,
   required: ["status", "confidence_level", "confidence_reason", "image_quality_status", "image_quality_issues", "summary", "conditions", "observations", "assessment_reason", "limitations"],
@@ -110,11 +111,12 @@ module.exports = async function handler(req, res) {
     var attempt = req.body.attempt || {}, exercise = req.body.exercise || {}, job = req.body.job || {};
     var context = ["Inspect this completed SMAW mild-steel weld photograph.", "The following recorded context is for the report only. It is not visual evidence; do not judge it and do not infer causes from it:", "Workflow: " + String(job.workflowType || exercise.workflowType || "Not supplied"), "Record: " + String(exercise.code || exercise.name || job.jobName || "Not supplied"), "Joint: " + String(exercise.jointType || "Not supplied"), "Recorded plate thickness: " + String(attempt.plateThickness || "Not supplied") + " mm", "Recorded electrode: " + String(attempt.electrodeClassification || "Not supplied") + " " + String(attempt.electrodeSize || "") + " mm", "Recorded position: " + String(attempt.weldingPosition || "Not supplied"), "Recorded current: " + String(attempt.currentAmp || "Not supplied") + " A"].join("\n");
     var started = Date.now();
+    var modelName = process.env.OPENAI_MODEL || "gpt-4o-mini";
     var response = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: "Bearer " + process.env.OPENAI_API_KEY },
       body: JSON.stringify({
-        model: process.env.OPENAI_MODEL || "gpt-4o-mini",
+        model: modelName,
         instructions: INSTRUCTIONS,
         input: [{ role: "user", content: [{ type: "input_text", text: context }, { type: "input_image", image_url: image, detail: "high" }] }],
         text: { format: { type: "json_schema", name: "weld_inspection", strict: true, schema: RESULT_SCHEMA } },
@@ -131,7 +133,11 @@ module.exports = async function handler(req, res) {
     var data = await response.json(), parsed = normalizeResult(JSON.parse(outputText(data)));
     if (!validResult(parsed)) return json(res, 502, { error: "The AI returned an incomplete inspection. Please retry." });
     parsed.response_time_ms = Date.now() - started;
-    parsed.engine = "ai";
+    parsed.engine = "openai_responses";
+    parsed.model_name = modelName;
+    parsed.schema_version = SCHEMA_VERSION;
+    parsed.prompt_version = PROMPT_VERSION;
+    parsed.app_version = process.env.VERCEL_GIT_COMMIT_SHA || process.env.APP_VERSION || "local";
     return json(res, 200, parsed);
   } catch (error) {
     console.error("check-weld failed", error);

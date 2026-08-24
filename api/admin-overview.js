@@ -30,8 +30,8 @@ function provider(user) {
 }
 function stage(userJobs, userAttempts, userInspections) {
   if (userInspections.length) return "Result reviewed";
-  if (!userJobs.length) return "No exercise started";
-  if (!userAttempts.length) return "Exercise selected";
+  if (!userJobs.length) return "No work started";
+  if (!userAttempts.length) return "Work record created";
   var latest = userAttempts.slice().sort(function (a, b) { return new Date(b.updated_at) - new Date(a.updated_at); })[0];
   if (latest.readiness_status === "ready") return "Ready for weld photo";
   if (latest.readiness_status === "check_setup") return "Setup needs attention";

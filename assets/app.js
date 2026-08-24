@@ -1,17 +1,6 @@
 /* Shared WeldCheck constants and UI helpers. */
 (function () {
   "use strict";
-  var CHECKLIST = [
-    { key: "c1", text: "Mild steel material has been confirmed." },
-    { key: "c2", text: "Plate thickness has been recorded." },
-    { key: "c3", text: "Joint type and joint arrangement have been confirmed." },
-    { key: "c4", text: "The surfaces to be welded are clean." },
-    { key: "c5", text: "Electrode classification and size have been confirmed." },
-    { key: "c6", text: "Welding current has been checked." },
-    { key: "c7", text: "Electrode holder, cables, and ground clamp are secure." },
-    { key: "c8", text: "Welding helmet, gloves, and protective clothing are ready." },
-    { key: "c9", text: "The work area is safe and properly arranged." }
-  ];
   var CONDITIONS = {
     visible_porosity: { label: "Visible porosity", tone: "danger" },
     undercut: { label: "Undercut", tone: "danger" },
@@ -44,9 +33,6 @@
     var opts = { year: "numeric", month: "short", day: "numeric" };
     if (withTime) { opts.hour = "2-digit"; opts.minute = "2-digit"; }
     return d.toLocaleString(undefined, opts);
-  }
-  function doneCount(job) {
-    return CHECKLIST.reduce(function (n, item) { return n + (job.checks && job.checks[item.key] ? 1 : 0); }, 0);
   }
   function nextPage(job) {
     var attempt = job.latestAttemptId ? "&attempt=" + encodeURIComponent(job.latestAttemptId) : "";
@@ -160,5 +146,5 @@
     addGuidedStepper(); addLoadingState(); enhanceExerciseSource();
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initChrome); else initChrome();
-  window.Wc = { CHECKLIST: CHECKLIST, CONDITIONS: CONDITIONS, STATUSES: STATUSES, $: $, esc: esc, param: param, uid: uid, fmtDate: fmtDate, toast: toast, doneCount: doneCount, preDone: doneCount, nextPage: nextPage, statusPill: statusPill, compareConditions: compareConditions, conditionLabels: conditionLabels, sourceHtml: sourceHtml, download: download };
+  window.Wc = { CONDITIONS: CONDITIONS, STATUSES: STATUSES, $: $, esc: esc, param: param, uid: uid, fmtDate: fmtDate, toast: toast, nextPage: nextPage, statusPill: statusPill, compareConditions: compareConditions, conditionLabels: conditionLabels, sourceHtml: sourceHtml, download: download };
 })();
