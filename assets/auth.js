@@ -34,6 +34,37 @@
       else Wc.toast(e.message || "Google sign-in could not start.");
     });
   }
+  function setWelcomeHandled() {
+    try { localStorage.setItem("wcWelcomedV2", "1"); } catch (e) {}
+  }
+  function welcomeWasHandled() {
+    try { return localStorage.getItem("wcWelcomedV2") === "1"; } catch (e) { return false; }
+  }
+  function manageWelcome(state) {
+    var modal = document.getElementById("welcomeModal"), google, guest, note;
+    if (!modal) return;
+    google = document.getElementById("googleBtn"); guest = document.getElementById("guestBtn"); note = document.getElementById("authNote");
+    function hide(remember) {
+      if (remember) setWelcomeHandled();
+      modal.classList.remove("is-in"); modal.hidden = true;
+    }
+    if (google) google.onclick = function () {
+      setWelcomeHandled();
+      startGoogle(google, note);
+    };
+    if (guest) guest.onclick = function () { hide(true); };
+
+    /* Wait for the restored Supabase session before deciding whether onboarding is
+       needed. A returning Google user must never be sent through sign-in again. */
+    if (state.configured && state.user && !state.isGuest) {
+      hide(true);
+    } else if (!state.configured || welcomeWasHandled()) {
+      hide(false);
+    } else {
+      modal.hidden = false;
+      requestAnimationFrame(function () { modal.classList.add("is-in"); });
+    }
+  }
   function oauthError() {
     var search = new URLSearchParams(location.search), hash = new URLSearchParams(location.hash.replace(/^#/, ""));
     return { code: search.get("error_code") || hash.get("error_code") || "", description: search.get("error_description") || hash.get("error_description") || "" };
@@ -103,7 +134,7 @@
     var nav = document.querySelector(".wc-topnav"), header = document.querySelector(".sel-header");
     if (!nav || !header || document.getElementById("accountBtn")) return;
     WcData.authState().then(function (state) {
-      authState = state; buildAccount(nav, state); buildMobile(header, nav);
+      authState = state; buildAccount(nav, state); buildMobile(header, nav); manageWelcome(state);
       setTimeout(function () {
         var text = document.getElementById("accessText"), status = document.getElementById("accessState"), action = document.querySelector("#heroAccountBtn span:last-child");
         if (!text && !status && !action) return;
