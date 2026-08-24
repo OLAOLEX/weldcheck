@@ -34,6 +34,22 @@
       else Wc.toast(e.message || "Google sign-in could not start.");
     });
   }
+  function oauthError() {
+    var search = new URLSearchParams(location.search), hash = new URLSearchParams(location.hash.replace(/^#/, ""));
+    return { code: search.get("error_code") || hash.get("error_code") || "", description: search.get("error_description") || hash.get("error_description") || "" };
+  }
+  function showIdentityRecovery(modal, opener) {
+    var error = oauthError(), card, title, copy, actions;
+    if (error.code !== "identity_already_exists") return;
+    card = modal.querySelector(".wc-account-card"); title = modal.querySelector("#accountTitle"); copy = title.nextElementSibling; actions = modal.querySelector("#accountActions");
+    title.textContent = "Google account already exists";
+    copy.textContent = "This Google account already has a WeldCheck workspace. Your current guest records remain in this separate guest workspace unless you choose the existing account.";
+    actions.innerHTML = '<button class="sel-btn sel-btn--google sel-btn--block" id="useExistingGoogle">' + googleMark() + '<span>Open existing Google workspace</span></button><button class="sel-btn sel-btn--ghost sel-btn--block" id="keepGuest">Keep current guest workspace</button><p class="wc-auth-help">Opening the existing account does not merge this guest workspace.</p>';
+    actions.querySelector("#keepGuest").onclick = function () { closePanel(modal, opener); };
+    actions.querySelector("#useExistingGoogle").onclick = function () { var button = this; button.classList.add("is-loading"); button.disabled = true; WcCloud.googleExisting().catch(function (failure) { button.classList.remove("is-loading"); button.disabled = false; modal.querySelector("#accountNote").textContent = failure.message || "The existing Google workspace could not be opened."; }); };
+    history.replaceState({}, "", location.pathname);
+    openPanel(modal);
+  }
   function buildAccount(nav, state) {
     var copy = accountCopy(state), btn = document.createElement("button");
     if (!nav.querySelector('[data-nav="guide"]')) {
@@ -55,7 +71,7 @@
       '<button class="sel-btn sel-btn--google sel-btn--block" id="accountGoogle">' + googleMark() + '<span>Continue with Google</span></button><p class="wc-auth-help">Google signs you in and keeps your guest records.</p>' :
       '<button class="sel-btn sel-btn--ghost sel-btn--block" id="accountSignOut">' + icon("i-log-out") + '<span>Sign out on this device</span></button>';
     if (!state.configured) actions = '<div class="sel-note sel-note--warn">' + icon("i-alert") + '<span>Cloud access is temporarily unavailable. You can continue with local drafts.</span></div>';
-    modal.innerHTML = '<div class="sel-modal__card wc-account-card"><button class="wc-modal-close" id="accountClose" type="button" aria-label="Close account panel">' + icon("i-close") + '</button><span class="sel-modal__ic">' + icon(state.isGuest ? "i-user" : "i-cloud") + '</span><p class="wc-overline">Account</p><h2 id="accountTitle">' + Wc.esc(copy.title) + '</h2><p>' + Wc.esc(copy.sub) + '</p><div class="wc-sync-status"><span class="wc-account-dot' + (state.configured ? " is-online" : "") + '"></span><div><b>' + (state.configured ? "Cloud connected" : "Local only") + '</b><span>' + (state.configured ? "Private to your account" : "Not syncing") + '</span></div></div>' + actions + '<p class="wc-tiny" id="accountNote" aria-live="polite"></p></div>';
+    modal.innerHTML = '<div class="sel-modal__card wc-account-card"><button class="wc-modal-close" id="accountClose" type="button" aria-label="Close account panel">' + icon("i-close") + '</button><span class="sel-modal__ic">' + icon(state.isGuest ? "i-user" : "i-cloud") + '</span><p class="wc-overline">Account</p><h2 id="accountTitle">' + Wc.esc(copy.title) + '</h2><p>' + Wc.esc(copy.sub) + '</p><div class="wc-sync-status"><span class="wc-account-dot' + (state.configured ? " is-online" : "") + '"></span><div><b>' + (state.configured ? "Cloud connected" : "Local only") + '</b><span>' + (state.configured ? "Private to your account" : "Not syncing") + '</span></div></div><div id="accountActions">' + actions + '</div><p class="wc-tiny" id="accountNote" aria-live="polite"></p></div>';
     document.body.appendChild(modal);
     btn.addEventListener("click", function () { openPanel(modal); });
     modal.querySelector("#accountClose").onclick = function () { closePanel(modal, btn); };
@@ -65,6 +81,7 @@
     if (google) google.onclick = function () { startGoogle(google, modal.querySelector("#accountNote")); };
     var signOut = modal.querySelector("#accountSignOut");
     if (signOut) signOut.onclick = function () { signOut.classList.add("is-loading"); signOut.setAttribute("aria-busy", "true"); signOut.setAttribute("aria-label", "Signing out"); WcCloud.signOut().then(function () { location.reload(); }); };
+    if (state.configured && state.isGuest) showIdentityRecovery(modal, btn);
     window.WcAuth = { open: function () { openPanel(modal); }, google: function (button, note) { startGoogle(button, note); }, state: state };
   }
   function buildMobile(header, nav) {

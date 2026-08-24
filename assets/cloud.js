@@ -43,13 +43,24 @@
       });
     });
   }
+  function googleExisting(redirectPath) {
+    if (!client) return Promise.reject(new Error("Cloud access is not configured."));
+    var path = redirectPath || "/", options;
+    if (path.charAt(0) !== "/") path = "/" + path;
+    options = { redirectTo: location.origin + path };
+    return client.auth.signOut().then(function (out) {
+      if (out.error) throw out.error;
+      try { localStorage.removeItem("wcLastUserId"); } catch (e) {}
+      return client.auth.signInWithOAuth({ provider: "google", options: options });
+    }).then(function (result) { if (result.error) throw result.error; return result; });
+  }
   function token() { return ensureSession().then(function (s) { return s && s.access_token; }); }
   function signedUrl(path) {
     if (!path || !client) return Promise.resolve(null);
     return client.storage.from("weld-images").createSignedUrl(path, 3600).then(function (r) { return r.error ? null : r.data.signedUrl; });
   }
   window.WcCloud = {
-    init: init, ensureSession: ensureSession, currentUser: currentUser, google: google,
+    init: init, ensureSession: ensureSession, currentUser: currentUser, google: google, googleExisting: googleExisting,
     signOut: function () { try { localStorage.removeItem("wcLastUserId"); } catch (e) {} return client ? client.auth.signOut() : Promise.resolve(); }, token: token,
     query: function (table) { return client.from(table); },
     upload: function (path, file) { return client.storage.from("weld-images").upload(path, file, { upsert: false, contentType: file.type || "image/jpeg" }); },

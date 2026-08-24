@@ -438,6 +438,7 @@ body:has(#emptyDashboard:not([hidden])) #jsonBtn { display: none; }
 .wc-account-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--sp-warn); box-shadow: 0 0 0 3px var(--sp-warn-soft); flex: none; }
 .wc-account-dot.is-online { background: var(--sp-success); box-shadow: 0 0 0 3px var(--sp-success-soft); }
 .wc-account-card { text-align: left; }
+#accountActions { display: grid; gap: 10px; }
 .wc-modal-close { position: absolute; top: 17px; right: 17px; width: 38px; height: 38px; display: grid; place-items: center; border: 1px solid var(--sp-line); border-radius: 11px; background: var(--sp-surface-2); color: var(--sp-ink-2); cursor: pointer; }
 .wc-overline { margin: 0 0 5px !important; color: var(--sp-accent-ink) !important; font-size: 11.5px !important; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
 .wc-sync-status { display: flex; gap: 12px; align-items: center; padding: 14px 15px; margin: 18px 0; border: 1px solid var(--sp-line); border-radius: 14px; background: var(--sp-surface-2); }
