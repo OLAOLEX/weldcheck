@@ -22,6 +22,8 @@ jobs:
         run: for file in api/*.js assets/*.js; do node --check "$file"; done
       - name: Test learning-cycle rules
         run: node tests/learning.test.js
+      - name: Test workflows and exercise library
+        run: node tests/workflows.test.js
       - name: Check Python syntax
         run: python3 -m py_compile dev-server.py
       - name: Check required public files

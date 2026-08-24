@@ -3,22 +3,19 @@
 [![MIT License](https://img.shields.io/badge/license-MIT-orange.svg)](LICENSE)
 [![Validate](https://github.com/OLAOLEX/weldcheck/actions/workflows/validate.yml/badge.svg)](https://github.com/OLAOLEX/weldcheck/actions/workflows/validate.yml)
 
-Cloud-backed guided SMAW practice with approved exercise rules, setup readiness, visible weld-surface review, repeated attempts, supervisor feedback and printable records.
+Cloud-backed SMAW work records with pre-welding setup checks, completed-weld review, guided practice, visible weld-surface assessment and printable reports.
 
 Website: [weldcheck.cc](https://weldcheck.cc)
 
-WeldCheck is an educational, visible-surface inspection and record-keeping project built with plain HTML, CSS and JavaScript. It is self-hostable and uses Supabase for private accounts/data and a server-side OpenAI endpoint for structured photograph assessment.
+WeldCheck is a visible-surface inspection and record-keeping project built with plain HTML, CSS and JavaScript. It is self-hostable and uses Supabase for private accounts/data and a server-side OpenAI endpoint for structured photograph assessment.
 
-## Current workflow
+## Current workflows
 
-1. Continue as a secure guest or link the guest account to Google.
-2. Choose a supervisor-approved exercise and identify the sample.
-3. Record the actual setup and complete the exercise-specific preparation checks.
-4. Deterministic rules block the weld-photo step until the recorded setup matches the approved template.
-5. Upload a photograph; brightness, contrast, sharpness and dimensions are checked locally.
-6. A suitable photograph is sent to the protected AI endpoint for visible evidence only.
-7. Confirm/correct the result, save a correction plan and start another attempt.
-8. Compare attempts, record optional supervisor feedback, print a report or export the records.
+- **Welding job:** record an applicable WPS, drawing, manufacturer or workshop reference; enter the actual setup; complete pre-welding checks; photograph; assess; confirm; report.
+- **Completed-weld check:** record known information for an existing weld, then go directly to photograph quality and visible-surface assessment without pretending a pre-weld approval occurred.
+- **Guided practice:** choose one of six sourced starter exercises, follow its steps, validate the actual setup and compare repeated attempts.
+
+All three workflows share private cloud records, the local photo-quality gate, the protected inspection endpoint, user confirmation, history and printable reports.
 
 The in-app Help page and downloadable A4 PDF guide explain the same flow in plain language.
 
@@ -41,7 +38,7 @@ For a full local cloud environment, copy `.env.example` to an ignored environmen
 1. Open the selected Supabase project.
 2. Run [`supabase/schema.sql`](supabase/schema.sql) in the SQL editor.
 3. Run [`supabase/learning-cycle.sql`](supabase/learning-cycle.sql).
-4. Insert at least one exercise template using values approved for the actual workshop. Record the procedure or supervisor source in `source_reference`. Do not copy unverified example ranges.
+4. Optionally add organisation-approved exercise templates. WeldCheck also includes six sourced starter exercises for supervised beginner practice; these are not WPSs.
 5. In Authentication settings, enable **Anonymous Sign-Ins**.
 6. Enable **Manual Identity Linking** so a guest can link Google without changing user ID.
 7. Enable Google as an OAuth provider and configure its client ID/secret.
@@ -91,11 +88,11 @@ The service-role key is used only inside `api/admin-overview.js`; it is never re
 
 ```text
 index.html             Home, auth entry, totals, recent records
-new-job.html           Approved exercise selection and sample details
-checklist.html         Actual setup, preparation and readiness rules
+new-job.html           Three-workflow chooser and work details
+checklist.html         Job/practice setup, preparation and readiness rules
 upload.html            Photograph quality gate and inspection request
 result.html            Visible result, correction plan, comparison, review and report
-history.html           Learning dashboard, filters, CSV and JSON exports
+history.html           Combined dashboard, filters, CSV and JSON exports
 guide.html             Plain-language help and downloadable PDF guide
 admin.html             Read-only, Google-protected project administration
 api/config.js          Public browser configuration
@@ -104,6 +101,8 @@ api/admin-overview.js  Allowlisted server-side admin overview
 assets/cloud.js        Supabase auth/storage adapter
 assets/data.js         Local-first jobs, attempts and inspections service
 assets/db.js           Fresh IndexedDB v3 cache/drafts
+assets/workflows.js    Shared job, quick-check and practice definitions
+assets/library.js      Six sourced built-in beginner exercises
 assets/exercises.js    Deterministic readiness, guidance and comparison rules
 supabase/schema.sql    Database, storage, RLS, and limit setup
 supabase/learning-cycle.sql  Exercise and attempt migration

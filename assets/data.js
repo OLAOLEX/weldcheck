@@ -16,21 +16,22 @@
   function iso(n) { return new Date(n || Date.now()).toISOString(); }
   function time(s) { return s ? Date.parse(s) : Date.now(); }
   function templateFrom(r) {
-    return { id:r.id, code:r.code, name:r.name, description:r.description||"", material:r.material, jointType:r.joint_type,
+    return { id:r.id, code:r.code, name:r.name, description:r.description||"", objective:r.description||"", difficulty:"School exercise", material:r.material, jointType:r.joint_type,
       thicknessMin:Number(r.plate_thickness_min_mm), thicknessMax:Number(r.plate_thickness_max_mm), electrodeClassification:r.electrode_classification,
       electrodeSize:Number(r.electrode_size_mm), currentMin:Number(r.current_min_amp), currentMax:Number(r.current_max_amp),
       weldingPosition:r.welding_position, preparationChecks:r.preparation_checks||[], expectedAppearance:r.expected_appearance||[],
-      sourceReference:r.source_reference, version:r.version, active:r.active };
+      sourceReference:r.source_reference, version:r.version, active:r.active, workflowType:"practice", instructions:[], commonChecks:[], photoInstruction:"" };
   }
   function cachedTemplates(v) {
     try { if (v) localStorage.setItem(CACHE_KEY, JSON.stringify(v)); return JSON.parse(localStorage.getItem(CACHE_KEY)||"[]"); } catch (e) { return []; }
   }
   function allTemplates() {
     return ready().then(function (s) {
-      if (!s.cloud) return cachedTemplates();
+      var builtIn = window.WcBuiltinExercises || [];
+      if (!s.cloud) return builtIn.concat(cachedTemplates().filter(function (x) { return !x.builtIn; }));
       return WcCloud.query("exercise_templates").select("*").eq("active", true).order("name").then(function (r) {
-        if (r.error) throw r.error; return cachedTemplates((r.data||[]).map(templateFrom));
-      }).catch(function () { return cachedTemplates(); });
+        if (r.error) throw r.error; return builtIn.concat(cachedTemplates((r.data||[]).map(templateFrom)));
+      }).catch(function () { return builtIn.concat(cachedTemplates()); });
     });
   }
   function jobRow(j, uid) {
@@ -38,13 +39,14 @@
     return { id:j.id,user_id:uid,sample_no:j.sampleNo,job_name:j.jobName||null,material:x.material||j.material||"Mild steel",
       joint_type:x.jointType||j.jointType,plate_thickness_mm:Number(x.thicknessMin||j.plateThickness),electrode_classification:x.electrodeClassification||j.electrodeClassification,
       electrode_size_mm:Number(x.electrodeSize||j.electrodeSize),welding_position:x.weldingPosition||j.weldingPosition,current_amp:Number(x.currentMin||j.currentAmp||1),
-      operator_name:j.operator||null,job_date:j.date||null,note:j.note||null,checklist_json:{},status:j.status==="inspected"?"inspected":"draft",
+      operator_name:j.operator||null,job_date:j.date||null,note:j.note||null,checklist_json:{workflowType:j.workflowType||x.workflowType||"practice",clientProject:j.clientProject||"",referenceType:j.referenceType||"",referenceText:j.referenceText||""},status:j.status==="inspected"?"inspected":"draft",
       exercise_template_id:j.exerciseTemplateId||null,exercise_snapshot:x,created_at:iso(j.createdAt),updated_at:iso(j.updatedAt) };
   }
   function jobFrom(r) {
     var x=r.exercise_snapshot||{};
     if (!Object.keys(x).length) x={ code:"LEGACY",name:"Earlier WeldCheck record",material:r.material,jointType:r.joint_type,thicknessMin:Number(r.plate_thickness_mm),thicknessMax:Number(r.plate_thickness_mm),electrodeClassification:r.electrode_classification,electrodeSize:Number(r.electrode_size_mm),weldingPosition:r.welding_position,currentMin:Number(r.current_amp),currentMax:Number(r.current_amp),preparationChecks:[],expectedAppearance:[],sourceReference:"Created before approved exercise templates",version:1,legacy:true };
-    return { id:r.id,ownerId:r.user_id,sampleNo:r.sample_no,jobName:r.job_name||"",material:r.material,operator:r.operator_name||"",date:r.job_date,note:r.note||"",
+    var meta=r.checklist_json||{};
+    return { id:r.id,ownerId:r.user_id,sampleNo:r.sample_no,jobName:r.job_name||"",material:r.material,operator:r.operator_name||"",date:r.job_date,note:r.note||"",workflowType:meta.workflowType||x.workflowType||"practice",clientProject:meta.clientProject||"",referenceType:meta.referenceType||"",referenceText:meta.referenceText||"",
       status:r.status,exerciseTemplateId:r.exercise_template_id,exerciseSnapshot:x,jointType:x.jointType||r.joint_type,plateThickness:x.thicknessMin||r.plate_thickness_mm,
       electrodeClassification:x.electrodeClassification||r.electrode_classification,electrodeSize:x.electrodeSize||r.electrode_size_mm,
       weldingPosition:x.weldingPosition||r.welding_position,currentAmp:x.currentMin||r.current_amp,createdAt:time(r.created_at),updatedAt:time(r.updated_at) };
@@ -86,7 +88,7 @@
       var ii=inspections.filter(function(i){return i.jobId===j.id;}).sort(function(a,b){return b.createdAt-a.createdAt;});
       j.attemptCount=aa.length;j.latestAttemptId=aa[0]&&aa[0].id;j.latestAttemptNo=aa[0]&&aa[0].attemptNo;
       j.latestReadinessStatus=aa[0]&&aa[0].readinessStatus;j.latestSupervisorStatus=aa[0]&&aa[0].supervisorStatus;
-      j.inspectionCount=ii.length;j.latestInspectionId=ii[0]&&ii[0].id;j.latestStatus=ii[0]&&ii[0].status;
+      j.inspectionCount=ii.length;j.latestInspectionId=ii[0]&&ii[0].id;j.latestInspectionAttemptId=ii[0]&&ii[0].attemptId;j.latestStatus=ii[0]&&ii[0].status;
     }); return jobs.sort(function(a,b){return b.createdAt-a.createdAt;});
   }
   function putCloud(table,row,id) { return WcCloud.query(table).upsert(row).then(function(r){if(r.error)throw r.error;return id;}); }

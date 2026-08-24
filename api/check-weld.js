@@ -18,7 +18,7 @@ var RESULT_SCHEMA = {
 };
 
 var INSTRUCTIONS = [
-  "You are the visible weld-surface inspection module in WeldCheck, a student learning and record system for SMAW mild-steel samples.",
+  "You are the visible weld-surface inspection module in WeldCheck, a work-record and learning system for SMAW mild-steel welds.",
   "First decide whether the photograph is usable. If it is not clear, set status to retake, image_quality_status to poor, conditions to an empty array, and give specific retake actions.",
   "For a usable image, return status acceptable only when none of the allowed visible conditions is evident. Otherwise return visible_issues and every condition that is visibly supported.",
   "Allowed conditions: visible_porosity (visible rounded pits or holes), undercut (a visible groove along a weld toe), excessive_spatter (many scattered metal droplets), irregular_bead (clearly inconsistent bead shape or width).",
@@ -63,10 +63,16 @@ function outputText(data) {
 }
 function validResult(result) {
   if (!result || ["acceptable", "visible_issues", "retake"].indexOf(result.status) < 0) return false;
+  if (["low", "medium", "high"].indexOf(result.confidence_level) < 0) return false;
+  if (["acceptable", "poor"].indexOf(result.image_quality_status) < 0) return false;
+  if (!["confidence_reason", "summary", "assessment_reason"].every(function (key) { return typeof result[key] === "string" && result[key].trim().length > 0; })) return false;
   if (!Array.isArray(result.conditions) || result.conditions.some(function (c) { return CONDITION_CODES.indexOf(c) < 0; })) return false;
   if (result.status === "acceptable" && result.conditions.length) return false;
   if (result.status === "visible_issues" && !result.conditions.length) return false;
-  return ["observations", "limitations", "image_quality_issues"].every(function (k) { return Array.isArray(result[k]); });
+  if (result.status === "retake" && result.image_quality_status !== "poor") return false;
+  if (result.status !== "retake" && result.image_quality_status !== "acceptable") return false;
+  if (!["observations", "limitations", "image_quality_issues"].every(function (k) { return Array.isArray(result[k]); })) return false;
+  return result.observations.length > 0 && result.limitations.length >= 2;
 }
 function normalizeResult(result) {
   var limits = { confidence_reason: 300, summary: 400, assessment_reason: 500 };
@@ -101,8 +107,8 @@ module.exports = async function handler(req, res) {
     if (!user) return json(res, 401, { error: "Your session has expired. Refresh and try again." });
     var usage = await claimLimit(token, !!user.is_anonymous);
     if (!usage.allowed) return json(res, 429, { error: "Daily AI inspection limit reached.", limit: usage.limit });
-    var attempt = req.body.attempt || {}, exercise = req.body.exercise || {};
-    var context = ["Inspect this completed SMAW mild-steel weld photograph.", "The following recorded context is for the report only. It is not visual evidence; do not judge it and do not infer causes from it:", "Exercise: " + String(exercise.code || exercise.name || "Not supplied"), "Joint: " + String(exercise.jointType || "Not supplied"), "Recorded plate thickness: " + String(attempt.plateThickness || "Not supplied") + " mm", "Recorded electrode: " + String(attempt.electrodeClassification || "Not supplied") + " " + String(attempt.electrodeSize || "") + " mm", "Recorded position: " + String(attempt.weldingPosition || "Not supplied"), "Recorded current: " + String(attempt.currentAmp || "Not supplied") + " A"].join("\n");
+    var attempt = req.body.attempt || {}, exercise = req.body.exercise || {}, job = req.body.job || {};
+    var context = ["Inspect this completed SMAW mild-steel weld photograph.", "The following recorded context is for the report only. It is not visual evidence; do not judge it and do not infer causes from it:", "Workflow: " + String(job.workflowType || exercise.workflowType || "Not supplied"), "Record: " + String(exercise.code || exercise.name || job.jobName || "Not supplied"), "Joint: " + String(exercise.jointType || "Not supplied"), "Recorded plate thickness: " + String(attempt.plateThickness || "Not supplied") + " mm", "Recorded electrode: " + String(attempt.electrodeClassification || "Not supplied") + " " + String(attempt.electrodeSize || "") + " mm", "Recorded position: " + String(attempt.weldingPosition || "Not supplied"), "Recorded current: " + String(attempt.currentAmp || "Not supplied") + " A"].join("\n");
     var started = Date.now();
     var response = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",

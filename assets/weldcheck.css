@@ -396,6 +396,22 @@ a.sel-row:hover { background: var(--sp-surface-2); }
 .wc-dashboard-empty .sel-btn { margin-top: 8px; }
 body:has(#emptyDashboard:not([hidden])) #csvBtn,
 body:has(#emptyDashboard:not([hidden])) #jsonBtn { display: none; }
+.wc-section-heading { margin-bottom: 20px; }
+.wc-section-heading > p:last-child { max-width: 700px; color: var(--sp-ink-2); }
+.wc-workflow-grid { align-items: stretch; }
+.wc-start-card { display: flex; flex-direction: column; min-height: 260px; color: inherit; text-decoration: none; transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease; }
+.wc-start-card:hover { transform: translateY(-3px); border-color: var(--sp-accent); box-shadow: var(--sp-sh-2); }
+.wc-start-card p { color: var(--sp-ink-2); flex: 1; }
+.wc-start-card > b { display: flex; align-items: center; gap: 7px; color: var(--sp-accent-ink); font-size: 13px; }
+.wc-start-card > b .ic { width: 16px; height: 16px; }
+.wc-start-card__icon, .wc-workflow-card > span:first-child { width: 46px; height: 46px; display: grid; place-items: center; border-radius: 14px; background: var(--sp-accent-soft); color: var(--sp-accent); margin-bottom: 18px; }
+.wc-start-card__icon .ic, .wc-workflow-card > span:first-child .ic { width: 23px; height: 23px; }
+.wc-workflow-list { display: grid; gap: 12px; margin-top: 24px; }
+.wc-workflow-card { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 16px; color: inherit; text-decoration: none; padding: 20px; }
+.wc-workflow-card > span:first-child { margin: 0; }
+.wc-workflow-card h3, .wc-workflow-card p { margin: 0; }
+.wc-workflow-card p { color: var(--sp-ink-2); margin-top: 4px; }
+.wc-workflow-card > .ic { color: var(--sp-ink-3); }
 .wc-stats-6 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
 @media (min-width: 720px) { .wc-stats-6 { grid-template-columns: repeat(3, 1fr); } }
 @media (min-width: 1000px) { .wc-stats-6 { grid-template-columns: repeat(6, 1fr); } }

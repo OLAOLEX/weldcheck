@@ -23,4 +23,9 @@ const comparison = learning.compare(
 assert.equal(comparison.setupChanges.length, 1);
 assert.deepEqual(Array.from(comparison.resolved), ["undercut"]);
 assert.deepEqual(Array.from(comparison.newConditions), ["irregular_bead"]);
+
+const jobGuidance = learning.guidance(["undercut"], { issues: [{ code: "current_range", message: "Recorded current is outside the requirement." }] }, { workflowType: "job" });
+assert.ok(jobGuidance.some((item) => /requirement/.test(item)));
+const quickGuidance = learning.guidance(["undercut"], { issues: [] }, { workflowType: "quick_check" });
+assert.ok(quickGuidance.some((item) => /No pre-weld requirement/.test(item)));
 console.log("learning-cycle rules: ok");

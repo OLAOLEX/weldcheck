@@ -50,16 +50,16 @@
   }
   function nextPage(job) {
     var attempt = job.latestAttemptId ? "&attempt=" + encodeURIComponent(job.latestAttemptId) : "";
-    if (job.latestInspectionId) return "/result?job=" + encodeURIComponent(job.id) + attempt + "&inspection=" + encodeURIComponent(job.latestInspectionId);
+    if (job.latestInspectionId && job.latestInspectionAttemptId === job.latestAttemptId) return "/result?job=" + encodeURIComponent(job.id) + attempt + "&inspection=" + encodeURIComponent(job.latestInspectionId);
     if (job.latestReadinessStatus === "ready") return "/upload?job=" + encodeURIComponent(job.id) + attempt;
     return "/checklist?job=" + encodeURIComponent(job.id) + attempt;
   }
   function statusPill(job) {
-    if (job.latestStatus) {
+    if (job.latestStatus && job.latestInspectionAttemptId === job.latestAttemptId) {
       var st = STATUSES[job.latestStatus] || STATUSES.retake;
       return '<span class="sel-state-pill sel-state-pill--' + st.tone + '">' + esc(st.label) + "</span>";
     }
-    if (job.latestReadinessStatus === "ready") return '<span class="sel-state-pill sel-state-pill--soon">Ready to weld</span>';
+    if (job.latestReadinessStatus === "ready") return '<span class="sel-state-pill sel-state-pill--soon">' + ((job.workflowType || job.exerciseSnapshot && job.exerciseSnapshot.workflowType) === "quick_check" ? "Ready for photo" : "Ready to weld") + '</span>';
     if (job.latestAttemptId) return '<span class="sel-state-pill sel-state-pill--soon">Setup check needed</span>';
     return '<span class="sel-state-pill sel-state-pill--soon">Not started</span>';
   }
@@ -95,7 +95,7 @@
   function addGuidedStepper() {
     var badge = document.querySelector(".sel-steps"), match = badge && badge.textContent.match(/Step\s+(\d)\s+of\s+4/i);
     if (!match || document.querySelector(".wc-stepper")) return;
-    var current = Number(match[1]), labels = ["Exercise", "Setup", "Weld photo", "Review"], list = document.createElement("ol");
+    var current = Number(match[1]), labels = ["Details", "Setup", "Weld photo", "Review"], list = document.createElement("ol");
     list.className = "wc-stepper"; list.setAttribute("aria-label", "Inspection progress");
     list.innerHTML = labels.map(function (label, index) {
       var n = index + 1, state = n < current ? " is-complete" : (n === current ? " is-current" : "");

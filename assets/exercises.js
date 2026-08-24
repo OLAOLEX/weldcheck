@@ -57,13 +57,20 @@
     return { status: issues.length ? "check_setup" : "ready", issues: issues, completedChecks: checks(template).length - issues.filter(function (x) { return x.code.indexOf("check_") === 0; }).length, totalChecks: checks(template).length };
   }
 
-  function guidance(conditions, readiness) {
+  function guidance(conditions, readiness, job) {
     var items = [], seen = {};
     (conditions || []).forEach(function (condition) {
       (CONDITION_CHECKS[condition] || []).forEach(function (text) { if (!seen[text]) { seen[text] = true; items.push(text); } });
     });
-    if (readiness && readiness.status === "ready") items.unshift("The recorded setup passed the selected exercise rules before welding; the photograph does not prove that a setting caused the visible result.");
-    return items.length ? items.slice(0, 6) : ["Keep the approved setup unchanged, save this record and ask the supervisor whether another practice attempt is required."];
+    var workflow = job && (job.workflowType || job.exerciseSnapshot && job.exerciseSnapshot.workflowType);
+    if (workflow === "quick_check") items.unshift("No pre-weld requirement was validated in this quick check; treat the recorded settings as context, not an approved cause or correction.");
+    if (workflow === "job" && readiness && readiness.status !== "ready") items.unshift("Review the recorded setup against the applicable job requirement; one or more setup items were not confirmed as ready.");
+    if (readiness && readiness.status === "ready" && workflow === "practice") items.unshift("The recorded setup passed the selected exercise rules before welding; the photograph does not prove that a setting caused the visible result.");
+    if (readiness && readiness.status === "ready" && workflow === "job") items.unshift("The recorded setup passed the entered job requirements before welding; the photograph does not prove that a setting caused the visible result.");
+    if (items.length) return items.slice(0, 6);
+    if (workflow === "quick_check") return ["Keep this photograph with the work record and ask a qualified reviewer whether another photograph or suitable test is required."];
+    if (workflow === "job") return ["Keep the applicable requirement with this record and ask the responsible reviewer whether another inspection or suitable test is required."];
+    return ["Keep the approved setup unchanged, save this record and ask the supervisor whether another practice attempt is required."];
   }
 
   function compare(previous, current) {
