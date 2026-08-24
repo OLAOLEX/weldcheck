@@ -421,7 +421,7 @@ body:has(#emptyDashboard:not([hidden])) #jsonBtn { display: none; }
 .wc-bar__track { height: 10px; overflow: hidden; border-radius: var(--sp-pill); background: var(--sp-surface-2); margin-top: 6px; }
 .wc-bar__track span { display: block; height: 100%; min-width: 2px; border-radius: inherit; background: var(--sp-accent); }
 .wc-filters { display: grid; gap: 10px; }
-@media (min-width: 720px) { .wc-filters { grid-template-columns: 2fr repeat(4, 1fr); } }
+@media (min-width: 720px) { .wc-filters { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); } .wc-filter-search { grid-column: span 2; } }
 @media (max-width: 700px) { .wc-page-head, .wc-card-head { flex-direction: column; } .sel-account span { display: none; } .sel-account { padding: 10px; } }
 @media (max-width: 700px) { .wc-guide-hero { padding: 23px; } .wc-guide-hero__mark { display: none; } .wc-guide-flow { grid-template-columns: 1fr; } .wc-faq { grid-template-columns: 1fr; } .wc-guide-dl div { grid-template-columns: 1fr; gap: 2px; } }
 

@@ -15,7 +15,7 @@ WeldCheck is a visible-surface inspection and record-keeping project built with 
 - **Completed-weld check:** record known information for an existing weld, then go directly to photograph quality and visible-surface assessment without pretending a pre-weld approval occurred.
 - **Guided practice:** choose one of six sourced starter exercises, follow its steps, validate the actual setup and compare repeated attempts.
 
-All three workflows share private cloud records, the local photo-quality gate, the protected inspection endpoint, user confirmation, history and printable reports.
+All three workflows share private cloud records, the local photo-quality gate, the protected inspection endpoint, user confirmation, optional supervised reference comparison, history and printable reports.
 
 The in-app Help page and downloadable A4 PDF guide explain the same flow in plain language.
 
@@ -104,6 +104,7 @@ assets/db.js           Fresh IndexedDB v3 cache/drafts
 assets/workflows.js    Shared job, quick-check and practice definitions
 assets/library.js      Six sourced built-in beginner exercises
 assets/exercises.js    Deterministic readiness, guidance and comparison rules
+assets/reference.js    Optional supervised condition-set comparison
 supabase/schema.sql    Database, storage, RLS, and limit setup
 supabase/learning-cycle.sql  Exercise and attempt migration
 ```

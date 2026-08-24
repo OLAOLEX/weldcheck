@@ -24,6 +24,8 @@ jobs:
         run: node tests/learning.test.js
       - name: Test workflows and exercise library
         run: node tests/workflows.test.js
+      - name: Test reference comparison rules
+        run: node tests/comparison.test.js
       - name: Check Python syntax
         run: python3 -m py_compile dev-server.py
       - name: Check required public files
