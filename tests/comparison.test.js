@@ -18,4 +18,7 @@ assert.equal(compare([], []), "exact");
 assert.equal(compare(["undercut"], ["undercut"]), "exact");
 assert.equal(compare(["undercut", "irregular_bead"], ["undercut"]), "partial");
 assert.equal(compare(["visible_porosity"], ["excessive_spatter"]), "no_match");
+const source = context.window.Wc.sourceHtml("Manufacturer chart: https://example.com/chart?v=1&size=3");
+assert.match(source, />Open source<\/a>/);
+assert.match(source, /href="https:\/\/example\.com\/chart\?v=1&amp;size=3"/);
 console.log("reference comparison rules: ok");

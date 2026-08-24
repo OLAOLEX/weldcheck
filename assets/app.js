@@ -70,6 +70,31 @@
     return "no_match";
   }
   function conditionLabels(values) { return (values || []).map(function (key) { return CONDITIONS[key] ? CONDITIONS[key].label : key; }); }
+  function sourceHtml(value) {
+    var text = String(value || ""), urls = text.match(/https:\/\/[^\s|]+/g) || [], cursor = 0, number = 0, html = "";
+    if (!urls.length) return esc(text);
+    urls.forEach(function (url) {
+      var index = text.indexOf(url, cursor);
+      number += 1;
+      html += esc(text.slice(cursor, index));
+      html += '<a class="wc-source-link" href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">Open source' + (urls.length > 1 ? " " + number : "") + "</a>";
+      cursor = index + url.length;
+    });
+    return html + esc(text.slice(cursor));
+  }
+  function enhanceExerciseSource() {
+    var el = $("exerciseSource"), observer;
+    if (!el) return;
+    function render() {
+      var value = el.textContent.trim();
+      if (!value || value === el.dataset.sourceValue || value.indexOf("https://") === -1) return;
+      el.dataset.sourceValue = value;
+      observer.disconnect(); el.innerHTML = sourceHtml(value); observer.observe(el, { childList: true, characterData: true, subtree: true });
+    }
+    observer = new MutationObserver(render);
+    observer.observe(el, { childList: true, characterData: true, subtree: true });
+    render();
+  }
   function download(name, content, type) {
     var url = URL.createObjectURL(new Blob([content], { type: type || "text/plain" }));
     var a = document.createElement("a"); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
@@ -132,8 +157,8 @@
     var page = document.body.getAttribute("data-page");
     document.querySelectorAll("[data-nav]").forEach(function (a) { if (a.getAttribute("data-nav") === page) a.classList.add("is-active"); });
     document.querySelectorAll("[data-year]").forEach(function (el) { el.textContent = new Date().getFullYear(); });
-    addGuidedStepper(); addLoadingState();
+    addGuidedStepper(); addLoadingState(); enhanceExerciseSource();
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initChrome); else initChrome();
-  window.Wc = { CHECKLIST: CHECKLIST, CONDITIONS: CONDITIONS, STATUSES: STATUSES, $: $, esc: esc, param: param, uid: uid, fmtDate: fmtDate, toast: toast, doneCount: doneCount, preDone: doneCount, nextPage: nextPage, statusPill: statusPill, compareConditions: compareConditions, conditionLabels: conditionLabels, download: download };
+  window.Wc = { CHECKLIST: CHECKLIST, CONDITIONS: CONDITIONS, STATUSES: STATUSES, $: $, esc: esc, param: param, uid: uid, fmtDate: fmtDate, toast: toast, doneCount: doneCount, preDone: doneCount, nextPage: nextPage, statusPill: statusPill, compareConditions: compareConditions, conditionLabels: conditionLabels, sourceHtml: sourceHtml, download: download };
 })();

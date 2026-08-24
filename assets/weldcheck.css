@@ -180,6 +180,7 @@ body.sel-body {
 .sel-row__body { flex: 1; min-width: 0; }
 .sel-row__title { font-size: 14.5px; font-weight: 600; color: var(--sp-ink); }
 .sel-row__sub { font-size: 12.5px; color: var(--sp-ink-2); }
+.sel-row__sub { overflow-wrap: anywhere; }
 a.sel-row { text-decoration: none; transition: background .14s ease; border-radius: 12px; padding-left: 10px; padding-right: 10px; margin: 0 -10px; }
 a.sel-row:hover { background: var(--sp-surface-2); }
 .sel-row__chev { color: var(--sp-ink-3); flex: none; }
@@ -204,6 +205,7 @@ a.sel-row:hover { background: var(--sp-surface-2); }
 
 /* Notes / states */
 .sel-note { display: flex; gap: 11px; align-items: flex-start; padding: 14px 16px; border-radius: 14px; font-size: 14.5px; }
+.sel-note > *:not(.ic) { min-width: 0; }
 .sel-note .ic { width: 18px; height: 18px; margin-top: 1px; }
 .sel-note--info { background: var(--sp-info-soft); color: var(--sp-info); }
 .sel-note--warn { background: var(--sp-warn-soft); color: var(--sp-warn); }
@@ -332,6 +334,8 @@ html:not(.wc-auth-ready) #welcomeModal { display: none !important; }
 .wc-required { margin-left: 6px; text-transform: uppercase; letter-spacing: .04em; }
 .wc-privacy, .wc-tiny { margin: 12px 0 0 !important; text-align: center; font-size: 12px; color: var(--sp-ink-3) !important; }
 .wc-note-copy { margin-top: 5px; font-size: 13px; }
+#exerciseSource { text-align: left; overflow-wrap: anywhere; word-break: break-word; }
+.wc-source-link { display: inline-flex; align-items: center; padding: 2px 7px; border-radius: 7px; background: color-mix(in srgb, currentColor 10%, transparent); color: inherit; font-weight: 800; text-decoration: underline; text-underline-offset: 2px; }
 .wc-list { margin: 8px 0 18px; padding-left: 21px; color: var(--sp-ink-2); }
 .wc-list li + li { margin-top: 7px; }
 .wc-section-card { margin-top: 18px; }
