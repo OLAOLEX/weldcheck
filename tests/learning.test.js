@@ -26,6 +26,9 @@ assert.deepEqual(Array.from(comparison.newConditions), ["irregular_bead"]);
 
 const jobGuidance = learning.guidance(["undercut"], { issues: [{ code: "current_range", message: "Recorded current is outside the requirement." }] }, { workflowType: "job" });
 assert.ok(jobGuidance.some((item) => /requirement/.test(item)));
-const quickGuidance = learning.guidance(["undercut"], { issues: [] }, { workflowType: "quick_check" });
-assert.ok(quickGuidance.some((item) => /No pre-weld requirement/.test(item)));
+const quickGuidance = learning.guidance(["undercut"], { issues: [] }, { workflowType: "quick_check" }, { currentAmp: 95 });
+assert.ok(quickGuidance.some((item) => /Recorded current: 95 A/.test(item)));
+assert.ok(quickGuidance.some((item) => /not an approved cause/.test(item)));
+const readyJobGuidance = learning.guidance(["excessive_spatter"], { status: "ready", issues: [] }, { workflowType: "job", exerciseSnapshot: { currentMin: 90, currentMax: 110 } }, { currentAmp: 100 });
+assert.ok(readyJobGuidance.some((item) => /100 A is within the entered job range of 90–110 A/.test(item)));
 console.log("learning-cycle rules: ok");

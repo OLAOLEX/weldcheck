@@ -5,18 +5,16 @@
   var CONDITION_CHECKS = {
     visible_porosity: [
       "Check that the plate surface and weld area are clean.",
-      "Check the electrode condition and handling requirements for the approved exercise.",
-      "Ask the supervisor to review any visible rounded pits before another attempt."
+      "Review the electrode condition and the applicable storage or handling instructions.",
+      "Ask the responsible reviewer to examine any visible rounded pits before the next decision."
     ],
     undercut: [
-      "Check the recorded current against the approved exercise range.",
-      "Check travel speed and electrode angle during the next attempt.",
-      "Ask the supervisor to review the groove visible along the weld edge."
+      "Review travel speed and electrode angle for the next weld or inspection.",
+      "Ask the responsible reviewer to examine the groove visible along the weld edge."
     ],
     excessive_spatter: [
-      "Check the recorded current against the approved exercise range.",
-      "Check arc-length consistency and the approved machine setup.",
-      "Confirm that the work surface is clean before the next attempt."
+      "Review arc-length consistency and the applicable equipment setup.",
+      "Confirm that the work surface was clean before the next weld or inspection."
     ],
     irregular_bead: [
       "Check travel-speed consistency during the next attempt.",
@@ -54,20 +52,22 @@
     checks(template).forEach(function (item) {
       if (!attempt.checks || !attempt.checks[item.key]) issues.push(issue("check_" + item.key, item.text, item.why || "Complete this preparation check before welding.", "Pending", "Done"));
     });
-    return { status: issues.length ? "check_setup" : "ready", issues: issues, completedChecks: checks(template).length - issues.filter(function (x) { return x.code.indexOf("check_") === 0; }).length, totalChecks: checks(template).length };
+    return { status: issues.length ? "check_setup" : "ready", issues: issues, recordedCurrent: amps, setupIssuesSeen: attempt.setupIssuesSeen || [], completedChecks: checks(template).length - issues.filter(function (x) { return x.code.indexOf("check_") === 0; }).length, totalChecks: checks(template).length };
   }
 
-  function guidance(conditions, readiness, job) {
+  function guidance(conditions, readiness, job, attempt) {
     var items = [], seen = {};
     (conditions || []).forEach(function (condition) {
       (CONDITION_CHECKS[condition] || []).forEach(function (text) { if (!seen[text]) { seen[text] = true; items.push(text); } });
     });
-    var workflow = job && (job.workflowType || job.exerciseSnapshot && job.exerciseSnapshot.workflowType);
-    if (workflow === "quick_check") items.unshift("No pre-weld requirement was validated in this quick check; treat the recorded settings as context, not an approved cause or correction.");
-    if (workflow === "job" && readiness && readiness.status !== "ready") items.unshift("Review the recorded setup against the applicable job requirement; one or more setup items were not confirmed as ready.");
-    if (readiness && readiness.status === "ready" && workflow === "practice") items.unshift("The recorded setup passed the selected exercise rules before welding; the photograph does not prove that a setting caused the visible result.");
-    if (readiness && readiness.status === "ready" && workflow === "job") items.unshift("The recorded setup passed the entered job requirements before welding; the photograph does not prove that a setting caused the visible result.");
-    if (items.length) return items.slice(0, 6);
+    var workflow = job && (job.workflowType || job.exerciseSnapshot && job.exerciseSnapshot.workflowType), template = job && job.exerciseSnapshot || {};
+    var actualCurrent = number(attempt && attempt.currentAmp) || number(readiness && readiness.recordedCurrent) || (workflow === "quick_check" ? number(template.currentMin) : null), currentRange = template.currentMin && template.currentMax ? rangeText(template.currentMin, template.currentMax, "A") : "";
+    if (workflow === "quick_check") items.unshift((actualCurrent ? "Recorded current: " + actualCurrent + " A. " : "The recorded current shown in this report ") + "was not checked against a pre-weld range, so it is context only and not an approved cause or correction.");
+    if (workflow === "job" && readiness && readiness.status !== "ready") items.unshift("The recorded setup was not fully confirmed against the applicable job requirement. Review the unresolved setup items before relying on this record.");
+    if (readiness && readiness.status === "ready" && workflow === "practice") items.unshift((actualCurrent ? "Recorded current " + actualCurrent + " A is" : "The recorded current is") + " within the selected exercise range of " + currentRange + ". The photograph does not prove that this setting caused the visible result.");
+    if (readiness && readiness.status === "ready" && workflow === "job") items.unshift((actualCurrent ? "Recorded current " + actualCurrent + " A is" : "The recorded current is") + " within the entered job range of " + currentRange + ". The photograph does not prove that this setting caused the visible result.");
+    if ((attempt && attempt.setupIssuesSeen || readiness && readiness.setupIssuesSeen || []).length) items.push("Earlier setup entries needed correction before this photograph. Keep those changes in the attempt history for review.");
+    if (items.length) return items.slice(0, 7);
     if (workflow === "quick_check") return ["Keep this photograph with the work record and ask a qualified reviewer whether another photograph or suitable test is required."];
     if (workflow === "job") return ["Keep the applicable requirement with this record and ask the responsible reviewer whether another inspection or suitable test is required."];
     return ["Keep the approved setup unchanged, save this record and ask the supervisor whether another practice attempt is required."];
