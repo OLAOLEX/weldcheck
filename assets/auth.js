@@ -40,6 +40,9 @@
   function welcomeWasHandled() {
     try { return localStorage.getItem("wcWelcomedV2") === "1"; } catch (e) { return false; }
   }
+  function shouldShowWelcome(state, handled) {
+    return !!(state.configured && state.user && state.isGuest && !handled);
+  }
   function manageWelcome(state) {
     var modal = document.getElementById("welcomeModal"), google, guest, note;
     if (!modal) return;
@@ -58,11 +61,11 @@
        needed. A returning Google user must never be sent through sign-in again. */
     if (state.configured && state.user && !state.isGuest) {
       hide(true);
-    } else if (!state.configured || welcomeWasHandled()) {
-      hide(false);
-    } else {
+    } else if (shouldShowWelcome(state, welcomeWasHandled())) {
       modal.hidden = false;
       requestAnimationFrame(function () { modal.classList.add("is-in"); });
+    } else {
+      hide(false);
     }
   }
   function oauthError() {
@@ -155,5 +158,6 @@
       document.documentElement.classList.add("wc-auth-ready");
     }).catch(function () { document.documentElement.classList.add("wc-auth-ready"); });
   }
+  window.WcAuthRules = { shouldShowWelcome: shouldShowWelcome };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", addChrome); else addChrome();
 })();

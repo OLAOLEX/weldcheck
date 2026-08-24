@@ -26,6 +26,8 @@ jobs:
         run: node tests/workflows.test.js
       - name: Test reference comparison rules
         run: node tests/comparison.test.js
+      - name: Test authentication onboarding rules
+        run: node tests/auth.test.js
       - name: Check Python syntax
         run: python3 -m py_compile dev-server.py
       - name: Check required public files
