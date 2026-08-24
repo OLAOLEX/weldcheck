@@ -9,6 +9,8 @@
   };
 
   var PREPARATION_CHECKS = [
+    { key: "material_confirmed", text: "Mild steel material is confirmed.", why: "Check that the work material matches the WeldCheck mild-steel scope and the applicable work information." },
+    { key: "thickness_confirmed", text: "Plate thickness is measured and recorded.", why: "Confirm the actual thickness entered above before welding." },
     { key: "joint_arrangement", text: "Joint arrangement and fit-up are confirmed.", why: "Check the joint against the applicable drawing, procedure or exercise." },
     { key: "surface_clean", text: "The plate and weld area are clean.", why: "Remove loose scale, oil, paint and other visible contamination." },
     { key: "electrode_confirmed", text: "Electrode classification, diameter and condition are confirmed.", why: "Check the electrode against the applicable requirement and its handling instructions." },

@@ -10,7 +10,7 @@ vm.runInNewContext(fs.readFileSync("assets/library.js", "utf8"), context);
 const workflow = context.window.WcWorkflow;
 const exercises = context.window.WcBuiltinExercises;
 assert.deepEqual(Object.keys(workflow.TYPES), ["job", "quick_check", "practice"]);
-assert.equal(workflow.PREPARATION_CHECKS.length, 7);
+assert.equal(workflow.PREPARATION_CHECKS.length, 9);
 assert.equal(exercises.length, 6);
 assert.equal(new Set(exercises.map((item) => item.code)).size, 6);
 exercises.forEach((item) => {
